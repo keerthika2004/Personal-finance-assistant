@@ -4,6 +4,7 @@ from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
 from backend.app.services.llm_factory import LLMFactory
 from backend.app.services.categorizer import MLCategorizer
+from backend.app.services.pii_redactor import PIIRedactor
 import os
 
 
@@ -52,7 +53,7 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
             print(f"Failed to initialize LLM chain: {e}")
 
     for item in raw_txs:
-        desc = item.get("raw_description", "")
+        desc = PIIRedactor.redact(item.get("raw_description", ""))
         merchant = desc
         category = "Uncategorized"
 

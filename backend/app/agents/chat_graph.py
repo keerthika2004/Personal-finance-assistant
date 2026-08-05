@@ -2,6 +2,7 @@ from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
 from backend.app.services.llm_factory import LLMFactory
+from backend.app.services.pii_redactor import PIIRedactor
 
 
 class ChatAgentState(TypedDict):
@@ -25,7 +26,7 @@ def format_context_node(state: ChatAgentState) -> ChatAgentState:
 
 
 def generate_chat_response_node(state: ChatAgentState) -> ChatAgentState:
-    query = state["user_query"]
+    query = PIIRedactor.redact(state["user_query"])
     txs = state["transaction_context"]
     goals = state.get("goals_context", [])
 
