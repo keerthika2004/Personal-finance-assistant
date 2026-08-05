@@ -60,7 +60,55 @@ def render_dashboard_view():
 
     st.markdown("---")
 
-    # Financial Goals Tracker Section
+    # Forecasting Section
+    st.subheader("🔮 30-Day Cash Flow Forecast (Prophet AI)")
+    forecast_data = data.get("forecast", {})
+    if forecast_data and forecast_data.get("dates"):
+        df_f = pd.DataFrame({
+            "Date": forecast_data["dates"],
+            "Predicted": forecast_data["yhat"],
+            "Lower Bound": forecast_data["yhat_lower"],
+            "Upper Bound": forecast_data["yhat_upper"]
+        })
+        
+        fig_forecast = go.Figure([
+            go.Scatter(
+                name='Predicted Cash Flow',
+                x=df_f['Date'],
+                y=df_f['Predicted'],
+                mode='lines',
+                line=dict(color='rgb(31, 119, 180)'),
+            ),
+            go.Scatter(
+                name='Upper Bound',
+                x=df_f['Date'],
+                y=df_f['Upper Bound'],
+                mode='lines',
+                marker=dict(color="#444"),
+                line=dict(width=0),
+                showlegend=False
+            ),
+            go.Scatter(
+                name='Lower Bound',
+                x=df_f['Date'],
+                y=df_f['Lower Bound'],
+                marker=dict(color="#444"),
+                line=dict(width=0),
+                mode='lines',
+                fillcolor='rgba(68, 68, 68, 0.3)',
+                fill='tonexty',
+                showlegend=False
+            )
+        ])
+        fig_forecast.update_layout(
+            yaxis_title='Predicted Transaction Amount (₹)',
+            hovermode="x"
+        )
+        st.plotly_chart(fig_forecast, use_container_width=True)
+    else:
+        st.info("Not enough historical data to generate a reliable AI forecast.")
+
+    st.markdown("---")
     st.subheader("🎯 Financial Savings Goals")
     
     # Goal Creation Form

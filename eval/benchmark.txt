@@ -13,3 +13,7 @@
 - **Approx Cost**: $0.00 (Local compute)
 
 *Note: Benchmarked on a generated synthetic dataset of 186 varied transactions.*
+
+## Cashflow Forecasting (Prophet)
+- **MAE**: $292.92
+- **MAPE**: 96.14%

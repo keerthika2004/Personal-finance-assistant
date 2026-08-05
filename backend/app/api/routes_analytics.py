@@ -7,6 +7,7 @@ from sqlalchemy.future import select
 from backend.app.db.database import get_db
 from backend.app.db.models import Transaction, TransactionStatus, UserGoal
 from backend.app.agents.insights_graph import build_insights_graph
+from backend.app.services.forecasting import generate_forecast
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics"])
 
@@ -76,6 +77,9 @@ async def get_analytics_summary(db: AsyncSession = Depends(get_db)):
         else:
             monthly_trend[month_key]["expenses"] += abs(t.amount)
 
+    # Generate 30-day forecast
+    forecast = generate_forecast(tx_dicts, periods=30)
+
     return {
         "total_income": final_state.get("total_income", 0.0),
         "total_expenses": final_state.get("total_expenses", 0.0),
@@ -84,7 +88,8 @@ async def get_analytics_summary(db: AsyncSession = Depends(get_db)):
         "category_breakdown": final_state.get("category_summary", {}),
         "monthly_trend": monthly_trend,
         "insights_report": final_state.get("insights_report", ""),
-        "goals": goal_dicts
+        "goals": goal_dicts,
+        "forecast": forecast
     }
 
 
