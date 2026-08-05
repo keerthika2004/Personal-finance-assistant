@@ -13,6 +13,7 @@ Anomaly Recall: 1.00
 
 --- Evaluating Chatbot QA ---
 Testing Question: How much did I spend at Starbucks?
-Chatbot eval failed: 'user_query'
+Answer: You spent $5.50 at Starbucks on 2024-01-01.
+Chatbot Accuracy (rule-based): 1.0
 
 Eval complete. All calls traced in Langfuse if configured.

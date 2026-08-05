@@ -117,11 +117,11 @@ def evaluate_chatbot():
     print(f"Testing Question: {questions[0]}")
     try:
         res = graph.invoke({
-            "messages": [{"role": "user", "content": questions[0]}],
-            "transactions": mock_txs,
-            "goals": []
+            "user_query": questions[0],
+            "transaction_context": mock_txs,
+            "goals_context": []
         })
-        answer = res["messages"][-1].content
+        answer = res["response"]
         print(f"Answer: {answer}")
         
         # Simple string matching eval
