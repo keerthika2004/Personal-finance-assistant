@@ -1,73 +1,107 @@
-# Personal Finance Assistant
+# Personal Finance Assistant (AI/ML Full-Stack Application)
 
-An intelligent, AI-powered personal finance manager that automatically parses bank statements (PDF, CSV, and Images), categorizes transactions, detects anomalies, and provides deep AI-driven financial insights. 
+An intelligent, full-stack personal finance assistant built with FastAPI, Streamlit, LangGraph, and a custom ML pipeline. This platform ingests multi-format statements (CSV, PDF, Image via Tesseract OCR), categorizes transactions using a trained TF-IDF Logistic Regression model (with a fallback Llama-3-70b zero-shot categorizer), tracks financial goals, and generates 30-day Prophet cash-flow forecasts. 
 
-Built using a full-stack architecture with **Streamlit** (Frontend), **FastAPI** (Backend), **PostgreSQL** (Database), and **LangGraph** (AI Agents powered by Groq Llama 3).
+It implements production-ready ML engineering practices, including a comprehensive evaluation harness, a dedicated PII redaction layer, and Langfuse tracing observability.
 
-## Features
-- **Multi-format Statement Parsing**: Upload bank statements in PDF, CSV, or Image (JPEG/PNG) formats. Images are parsed via Tesseract OCR and Llama-3.
-- **AI Transaction Categorization**: Automatically normalizes merchant names and categorizes transactions (Groceries, Dining, etc.) using AI.
-- **Human-in-the-Loop (HITL) Review**: Suspicious transactions (e.g. unusually large amounts) and potential duplicates are flagged by the AI for human review before being approved.
-- **Interactive Dashboard**: View category breakdowns, monthly cash flow trends, and net savings.
-- **AI Financial Insights**: Get a customized, auto-generated financial report analyzing your spending habits and savings rate.
-- **Goal Tracking**: Create and track specific financial savings goals.
-- **Chatbot Assistant**: Ask questions about your finances and get AI-driven answers based on your transaction history.
+## 🚀 Key Features
+- **Multi-modal Parsing**: Upload CSV, PDF, or Images. Uses `Tesseract OCR` and a dedicated parsing LangGraph agent to extract raw transaction rows.
+- **Hybrid ML/LLM Categorization**: 
+  - *Primary*: A Scikit-Learn TF-IDF + Logistic Regression pipeline achieving ~86% Accuracy, ~0.80 Macro-F1 with ~0.03ms latency per transaction.
+  - *Fallback*: A zero-shot Llama-3 LLM categorizer using Groq.
+- **Intelligent Reconciliation & Anomaly Detection**: LangGraph workflow deduplicates transactions across uploads and scores anomalies (e.g., unusually high spending or duplicated transactions), placing them in a Human-in-the-loop (HITL) review queue.
+- **Cash-flow Forecasting**: Uses Meta's `Prophet` time-series model to forecast the next 30 days of income and expenses, surfaced on the dashboard.
+- **Privacy & Security First**: A dedicated `PII_Redactor` strips Credit Card numbers, SSNs, and Phone Numbers via regex before any text hits the LLM boundary.
+- **Observability & Evals**: Integrated with `Langfuse` to trace LLM calls. A standalone evaluation harness (`eval/run_evals.py`) benchmarks models against synthetic ground truth datasets.
+- **Interactive Chatbot**: RAG-style interactive agent that can answer natural language questions about your transaction history and goals.
 
-## Architecture
+## 🏗️ Architecture
 
-- **Frontend**: Streamlit (Python) - Located in `/frontend`
-- **Backend**: FastAPI (Python) - Located in `/backend`
-- **Database**: PostgreSQL (via SQLAlchemy & asyncpg)
-- **AI/LLM Engine**: Groq (Llama-3-70b-versatile) & LangGraph for agentic workflows.
-
-## Prerequisites
-- **Python 3.9+**
-- **Docker & Docker Compose** (For running Postgres locally)
-- **Tesseract OCR** (For image parsing)
-  - *Mac*: `brew install tesseract`
-  - *Ubuntu*: `sudo apt-get install tesseract-ocr`
-
-## Quick Start
-
-### 1. Environment Setup
-Create a `.env` file in the `backend/` directory with the following variables:
-```ini
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/finance_db
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
+```mermaid
+graph TD
+    %% User Interfaces
+    User([User]) -->|Uploads PDF/CSV/Image| UI[Streamlit Frontend]
+    User -->|Interacts with Chat| UI
+    
+    %% Backend APIs
+    UI -->|REST API calls| API[FastAPI Backend]
+    
+    %% Parsing & Processing
+    API --> ParseGraph[LangGraph: Parsing Agent]
+    ParseGraph --> OCR[Tesseract OCR]
+    ParseGraph --> ParseLLM[Llama-3 LLM]
+    
+    %% Reconciliation & ML
+    API --> ReconGraph[LangGraph: Reconciliation Agent]
+    ReconGraph --> PII[PII Redactor]
+    PII --> ML[ML Categorizer TF-IDF + LR]
+    PII -.-> LLMCat[LLM Categorizer Fallback]
+    ReconGraph --> Anomaly[Anomaly Scorer & Deduplication]
+    
+    %% Analytics & Forecasting
+    API --> Analytics[Analytics Engine]
+    Analytics --> Prophet[Prophet Time-Series Forecaster]
+    
+    %% Chat 
+    API --> ChatGraph[LangGraph: Chat Agent]
+    
+    %% Storage & Observability
+    ReconGraph --> DB[(PostgreSQL + asyncpg)]
+    Analytics --> DB
+    ChatGraph --> DB
+    ParseLLM -.-> Langfuse[Langfuse Observability]
+    ChatGraph -.-> Langfuse
 ```
 
-### 2. Start the Database
-Start the local PostgreSQL database using Docker Compose:
-```bash
-docker-compose up -d
+## 🛠️ Technology Stack
+- **Backend**: FastAPI, SQLAlchemy (asyncpg), PostgreSQL, Pydantic
+- **Frontend**: Streamlit, Plotly
+- **AI/ML**: LangGraph, Langchain, Scikit-Learn, Prophet, Tesseract OCR, Llama-3 (Groq API)
+- **DevOps**: Docker, Docker Compose, Pytest
+- **Observability**: Langfuse
+
+## 🏃‍♂️ How to Run Locally
+
+### 1. Prerequisites
+- Docker & Docker Compose
+- Python 3.10+
+- Tesseract OCR (`brew install tesseract` or `apt-get install tesseract-ocr`)
+
+### 2. Environment Variables
+Create a `.env` file in `backend/` and `frontend/`:
+```env
+# backend/.env
+DATABASE_URL=postgresql+asyncpg://user:password@db:5432/finance
+GROQ_API_KEY=your_groq_api_key
+LANGFUSE_PUBLIC_KEY=optional_langfuse_pk
+LANGFUSE_SECRET_KEY=optional_langfuse_sk
+USE_ML_CATEGORIZER=true
+
+# frontend/.env
+BACKEND_URL=http://backend:8000
 ```
 
-### 3. Run the Backend (FastAPI)
+### 3. Start with Docker Compose
 ```bash
-# Create a virtual environment and install requirements
-python3 -m venv venv
+docker-compose up --build
+```
+- Frontend available at `http://localhost:8501`
+- Backend API docs at `http://localhost:8000/docs`
+
+### 4. Running the ML Evaluation Harness
+```bash
+python -m venv venv
 source venv/bin/activate
 pip install -r backend/requirements.txt
-
-# Start the FastAPI server
-python -m uvicorn backend.app.main:app --reload --reload-dir backend --port 8000
+python eval/run_evals.py
 ```
 
-### 4. Run the Frontend (Streamlit)
-In a new terminal window:
-```bash
-source venv/bin/activate
-pip install -r frontend/requirements.txt
+## 📂 Repository Structure
+- `/backend`: Core FastAPI app, LangGraph agents, ML services, database models, and unit tests.
+- `/frontend`: Streamlit dashboard, upload interfaces, and chatbot UI.
+- `/eval`: Evaluation harness and benchmarking results.
+- `/scripts`: Data synthesis and model training scripts.
+- `/data`: Synthetic training data.
 
-# Start the Streamlit app
-python -m streamlit run frontend/app.py
-```
-The app will open in your browser at `http://localhost:8501`.
-
-## Documentation
-- [Backend Documentation](backend/README.md)
-- [Frontend Documentation](frontend/README.md)
-
----
-*Created by Keerthika.*
+## 📜 License
+MIT License
