@@ -1,0 +1,211 @@
+import math
+from typing import TypedDict, List, Dict, Any, Optional
+from langgraph.graph import StateGraph, END
+from langchain_core.prompts import ChatPromptTemplate
+from backend.app.services.llm_factory import LLMFactory
+
+
+class TransactionItem(TypedDict):
+    id: Optional[str]
+    date: str
+    raw_description: str
+    amount: float
+    normalized_merchant: Optional[str]
+    category: Optional[str]
+    is_duplicate: bool
+    duplicate_of_id: Optional[str]
+    is_suspicious: bool
+    anomaly_score: float
+    anomaly_reason: Optional[str]
+    status: str  # PENDING, APPROVED, REJECTED, FLAGGED
+
+
+class ReconciliationState(TypedDict):
+    statement_id: str
+    raw_transactions: List[Dict[str, Any]]
+    normalized_transactions: List[TransactionItem]
+    flagged_transactions: List[TransactionItem]
+    approved_transactions: List[TransactionItem]
+    current_step: str
+    requires_hitl: bool
+
+
+# Node 1: Normalization & Category Classification
+def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationState:
+    raw_txs = state["raw_transactions"]
+    normalized: List[TransactionItem] = []
+
+    try:
+        llm = LLMFactory.get_llm(temperature=0.0)
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a financial transaction normalizer. For the given raw transaction description, return the clean Merchant Name and assign one of the following Categories: [Groceries, Dining, Transportation, Utilities, Shopping, Entertainment, Income, Transfer, Healthcare, Subscriptions, Uncategorized]. Format response as: Merchant | Category"),
+            ("user", "{description}")
+        ])
+        chain = prompt | llm
+
+        for item in raw_txs:
+            desc = item.get("raw_description", "")
+            merchant = desc
+            category = "Uncategorized"
+
+            if desc:
+                try:
+                    res = chain.invoke({"description": desc})
+                    content = str(res.content).strip()
+                    if "|" in content:
+                        parts = content.split("|")
+                        merchant = parts[0].strip()
+                        category = parts[1].strip()
+                except Exception:
+                    pass
+
+            normalized.append({
+                "id": item.get("id"),
+                "date": str(item.get("date")),
+                "raw_description": desc,
+                "amount": float(item.get("amount", 0.0)),
+                "normalized_merchant": merchant,
+                "category": category,
+                "is_duplicate": False,
+                "duplicate_of_id": None,
+                "is_suspicious": False,
+                "anomaly_score": 0.0,
+                "anomaly_reason": None,
+                "status": "PENDING"
+            })
+    except Exception:
+        # Fallback if LLM fails or API key missing
+        for item in raw_txs:
+            normalized.append({
+                "id": item.get("id"),
+                "date": str(item.get("date")),
+                "raw_description": item.get("raw_description", ""),
+                "amount": float(item.get("amount", 0.0)),
+                "normalized_merchant": item.get("raw_description", ""),
+                "category": "Uncategorized",
+                "is_duplicate": False,
+                "duplicate_of_id": None,
+                "is_suspicious": False,
+                "anomaly_score": 0.0,
+                "anomaly_reason": None,
+                "status": "PENDING"
+            })
+
+    state["normalized_transactions"] = normalized
+    state["current_step"] = "NORMALIZED"
+    return state
+
+
+# Node 2: Deduplication Detection
+def deduplication_node(state: ReconciliationState) -> ReconciliationState:
+    txs = state["normalized_transactions"]
+    seen = {}
+
+    for tx in txs:
+        # Match key: date + amount + normalized_merchant
+        key = f"{tx['date']}_{tx['amount']}_{tx['normalized_merchant']}"
+        if key in seen:
+            tx["is_duplicate"] = True
+            tx["duplicate_of_id"] = seen[key]
+            tx["status"] = "FLAGGED"
+        else:
+            seen[key] = tx.get("id", key)
+
+    state["normalized_transactions"] = txs
+    state["current_step"] = "DEDUPLICATED"
+    return state
+
+
+# Node 3: Anomaly & Suspicious Activity Scoring
+def anomaly_scoring_node(state: ReconciliationState) -> ReconciliationState:
+    txs = state["normalized_transactions"]
+    flagged: List[TransactionItem] = []
+    
+    if not txs:
+        state["current_step"] = "SCORED"
+        return state
+
+    amounts = [abs(t["amount"]) for t in txs if t["amount"] != 0]
+    avg_amt = sum(amounts) / len(amounts) if amounts else 0.0
+
+    for tx in txs:
+        score = 0.0
+        reasons = []
+
+        # Rule 1: High dollar transaction (> $1,000 or > 3x average)
+        abs_val = abs(tx["amount"])
+        if abs_val > 1000 or (avg_amt > 0 and abs_val > 4 * avg_amt):
+            score += 45.0
+            reasons.append(f"Unusually large transaction amount (${abs_val:.2f})")
+
+        # Rule 2: Flagged as duplicate
+        if tx["is_duplicate"]:
+            score += 40.0
+            reasons.append("Identified as duplicate transaction across accounts")
+
+        # Set final suspicion flag if score >= 40
+        tx["anomaly_score"] = min(score, 100.0)
+        if score >= 40.0:
+            tx["is_suspicious"] = True
+            tx["anomaly_reason"] = "; ".join(reasons)
+            tx["status"] = "FLAGGED"
+            flagged.append(tx)
+
+    state["flagged_transactions"] = flagged
+    state["requires_hitl"] = len(flagged) > 0
+    state["current_step"] = "SCORED"
+    return state
+
+
+# Conditional Router Node for HITL Check
+def hitl_router(state: ReconciliationState) -> str:
+    if state.get("requires_hitl", False):
+        return "hitl_review_pause"
+    return "commit_node"
+
+
+# Node 4: HITL Pause Marker Node
+def hitl_review_pause_node(state: ReconciliationState) -> ReconciliationState:
+    state["current_step"] = "PAUSED_FOR_HITL"
+    return state
+
+
+# Node 5: Commit Approved Node
+def commit_node(state: ReconciliationState) -> ReconciliationState:
+    approved = [t for t in state["normalized_transactions"] if t["status"] != "REJECTED"]
+    for t in approved:
+        if t["status"] == "PENDING":
+            t["status"] = "APPROVED"
+            
+    state["approved_transactions"] = approved
+    state["current_step"] = "COMPLETED"
+    return state
+
+
+# Build LangGraph StateGraph Workflow
+def build_reconciliation_graph():
+    workflow = StateGraph(ReconciliationState)
+
+    workflow.add_node("normalize", normalize_and_categorize_node)
+    workflow.add_node("deduplicate", deduplication_node)
+    workflow.add_node("anomaly_score", anomaly_scoring_node)
+    workflow.add_node("hitl_review_pause", hitl_review_pause_node)
+    workflow.add_node("commit_node", commit_node)
+
+    workflow.set_entry_point("normalize")
+    workflow.add_edge("normalize", "deduplicate")
+    workflow.add_edge("deduplicate", "anomaly_score")
+    
+    workflow.add_conditional_edges(
+        "anomaly_score",
+        hitl_router,
+        {
+            "hitl_review_pause": "hitl_review_pause",
+            "commit_node": "commit_node"
+        }
+    )
+    
+    workflow.add_edge("hitl_review_pause", END)
+    workflow.add_edge("commit_node", END)
+
+    return workflow.compile()
