@@ -3,6 +3,8 @@ from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
 from backend.app.services.llm_factory import LLMFactory
+from backend.app.services.categorizer import MLCategorizer
+import os
 
 
 class TransactionItem(TypedDict):
@@ -34,21 +36,31 @@ class ReconciliationState(TypedDict):
 def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationState:
     raw_txs = state["raw_transactions"]
     normalized: List[TransactionItem] = []
+    
+    use_ml = os.environ.get("USE_ML_CATEGORIZER", "true").lower() == "true"
+    chain = None
+    
+    if not use_ml:
+        try:
+            llm = LLMFactory.get_llm(temperature=0.0)
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", "You are a financial transaction normalizer. For the given raw transaction description, return the clean Merchant Name and assign one of the following Categories: [Groceries, Dining, Transportation, Utilities, Shopping, Entertainment, Income, Transfer, Healthcare, Subscriptions, Uncategorized]. Format response as: Merchant | Category"),
+                ("user", "{description}")
+            ])
+            chain = prompt | llm
+        except Exception as e:
+            print(f"Failed to initialize LLM chain: {e}")
 
-    try:
-        llm = LLMFactory.get_llm(temperature=0.0)
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a financial transaction normalizer. For the given raw transaction description, return the clean Merchant Name and assign one of the following Categories: [Groceries, Dining, Transportation, Utilities, Shopping, Entertainment, Income, Transfer, Healthcare, Subscriptions, Uncategorized]. Format response as: Merchant | Category"),
-            ("user", "{description}")
-        ])
-        chain = prompt | llm
+    for item in raw_txs:
+        desc = item.get("raw_description", "")
+        merchant = desc
+        category = "Uncategorized"
 
-        for item in raw_txs:
-            desc = item.get("raw_description", "")
-            merchant = desc
-            category = "Uncategorized"
-
-            if desc:
+        if desc:
+            if use_ml:
+                category = MLCategorizer.predict_category(desc)
+                merchant = desc
+            elif chain:
                 try:
                     res = chain.invoke({"description": desc})
                     content = str(res.content).strip()
@@ -59,37 +71,20 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
                 except Exception:
                     pass
 
-            normalized.append({
-                "id": item.get("id"),
-                "date": str(item.get("date")),
-                "raw_description": desc,
-                "amount": float(item.get("amount", 0.0)),
-                "normalized_merchant": merchant,
-                "category": category,
-                "is_duplicate": False,
-                "duplicate_of_id": None,
-                "is_suspicious": False,
-                "anomaly_score": 0.0,
-                "anomaly_reason": None,
-                "status": "PENDING"
-            })
-    except Exception:
-        # Fallback if LLM fails or API key missing
-        for item in raw_txs:
-            normalized.append({
-                "id": item.get("id"),
-                "date": str(item.get("date")),
-                "raw_description": item.get("raw_description", ""),
-                "amount": float(item.get("amount", 0.0)),
-                "normalized_merchant": item.get("raw_description", ""),
-                "category": "Uncategorized",
-                "is_duplicate": False,
-                "duplicate_of_id": None,
-                "is_suspicious": False,
-                "anomaly_score": 0.0,
-                "anomaly_reason": None,
-                "status": "PENDING"
-            })
+        normalized.append({
+            "id": item.get("id"),
+            "date": str(item.get("date")),
+            "raw_description": desc,
+            "amount": float(item.get("amount", 0.0)),
+            "normalized_merchant": merchant,
+            "category": category,
+            "is_duplicate": False,
+            "duplicate_of_id": None,
+            "is_suspicious": False,
+            "anomaly_score": 0.0,
+            "anomaly_reason": None,
+            "status": "PENDING"
+        })
 
     state["normalized_transactions"] = normalized
     state["current_step"] = "NORMALIZED"

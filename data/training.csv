@@ -1,0 +1,187 @@
+description,category
+Walmart Supercenter,Groceries
+Taco Bell,Dining
+Shell Oil,Transportation
+Comcast Cable,Utilities
+Macy's Department Store,Shopping
+AMC Theatres,Entertainment
+Direct Deposit,Income
+Transfer to Savings,Transfer
+Kaiser Permanente,Healthcare
+Netflix Subscription,Subscriptions
+Unknown Transaction,Uncategorized
+Trader Joe's,Groceries
+Starbucks Coffee,Dining
+Enterprise Rent-A-Car,Transportation
+AT&T Wireless,Utilities
+Best Buy,Shopping
+Live Nation Concerts,Entertainment
+Payroll Deposit,Income
+Transfer to Checking,Transfer
+CVS Pharmacy,Healthcare
+Spotify Premium,Subscriptions
+Generic Transaction,Uncategorized
+Safeway Grocery,Groceries
+Olive Garden,Dining
+Exxon Gas Station,Transportation
+Pacific Gas & Electric,Utilities
+Target Store,Shopping
+Regal Cinemas,Entertainment
+Social Security Deposit,Income
+Transfer to Credit Card,Transfer
+Urgent Care Center,Healthcare
+Apple Music Subscription,Subscriptions
+Unrecognized Charge,Uncategorized
+Costco Wholesale,Groceries
+Chili's Grill & Bar,Dining
+Uber Ride,Transportation
+Verizon FiOS,Utilities
+Kohl's Department Store,Shopping
+Cinemark Theatres,Entertainment
+Paycheck Deposit,Income
+Transfer to Brokerage,Transfer
+Dentist Office,Healthcare
+Hulu Subscription,Subscriptions
+Unknown Charge,Uncategorized
+WALMART SUPERCTR 1234,Groceries
+GRUBHUB DELIVERY 9876,Dining
+SHELL OIL 5432,Transportation
+COMED ELECTRIC BILL PAY,Utilities
+TARGET CORP 1111,Shopping
+REGAL CINEMAS 2222,Entertainment
+DIRECT DEPOSIT PAYROLL,Income
+TRANSFER TO SAVINGS 3333,Transfer
+CVS PHARMACY 4444,Healthcare
+NETFLIX.COM 5555,Subscriptions
+PURCHASE AT BANK OF AMERICA ATM,Uncategorized
+KROGER GROCERY 6666,Groceries
+UBER EATS 7777,Dining
+LYFT RIDE 8888,Transportation
+AT&T WIRELESS BILL,Utilities
+MACYS 9999,Shopping
+AMC THEATERS 0000,Entertainment
+SOCIAL SECURITY BENEFIT,Income
+TRANSFER FROM CHECKING 1234,Transfer
+WALGREENS 5678,Healthcare
+SPOTIFY PREMIUM 9012,Subscriptions
+FEES FOR ATM WITHDRAWAL,Uncategorized
+COSTCO WHOLESALE 3456,Groceries
+DOORDASH DELIVERY 7890,Dining
+CHEVRON GAS 1234,Transportation
+VERIZON WIRELESS BILL,Utilities
+TJ MAXX 5678,Shopping
+CINEMARK THEATRES 9012,Entertainment
+PAYROLL DEPOSIT,Income
+TRANSFER TO CHECKING 1111,Transfer
+RITE AID 2222,Healthcare
+HULU SUBSCRIPTION 3333,Subscriptions
+DEBIT CARD PURCHASE,Uncategorized
+TRADER JOE'S 4444,Groceries
+POSTMATES DELIVERY 5555,Dining
+EXXONMOBIL 6666,Transportation
+COX COMMUNICATIONS BILL,Utilities
+NORDSTROM 7777,Shopping
+BOWLING ALLEY 8888,Entertainment
+RETIREMENT ACCOUNT DEPOSIT,Income
+TRANSFER TO INVESTMENT 9999,Transfer
+WALMART PHARMACY 0000,Healthcare
+APPLE MUSIC 1234,Subscriptions
+PURCHASE AT FOREIGN ATM,Uncategorized
+Safeway 1234,Groceries
+Wells Fargo Transfer 123456,Transfer
+Electricity Bill Payment,Utilities
+Starbucks Store 1234,Dining
+Netflix.com,Subscriptions
+Direct Deposit Payroll,Income
+Uber Trip 123456,Transportation
+Kaiser Permanente 1234,Healthcare
+Walmart Supercenter 123,Shopping
+AT&T Wireless Bill,Utilities
+Amazon Online Store,Shopping
+Bank of America Transfer,Transfer
+Chase Credit Card Payment,Uncategorized
+Costco Wholesale 123,Groceries
+Regal Cinemas 1234,Entertainment
+Comcast Cable Bill,Utilities
+Direct Energy Bill Payment,Utilities
+DoorDash Delivery 1234,Dining
+Payroll Direct Deposit,Income
+Spotify Premium,Subscriptions
+Lyft Ride 123456,Transportation
+CVS Pharmacy 1234,Healthcare
+Target Store 1234,Shopping
+T-Mobile Wireless Bill,Utilities
+Home Depot Store 123,Shopping
+Venmo Transfer 123456,Transfer
+Whole Foods Market 123,Groceries
+Ticketmaster 1234,Entertainment
+Water Bill Payment,Utilities
+Grubhub Delivery 1234,Dining
+Paycheck Deposit,Income
+Hulu Subscription,Subscriptions
+Gas Station 1234,Transportation
+Urgent Care 1234,Healthcare
+Macy's Store 1234,Shopping
+Internet Bill Payment,Utilities
+Zelle Transfer 123456,Transfer
+Trader Joe's 123,Groceries
+Apple Store 1234,Shopping
+AMC Theatres 1234,Entertainment
+Sprint Wireless Bill,Utilities
+Rite Aid Pharmacy 1234,Healthcare
+Deposit from External Account,Transfer
+Income Tax Refund,Income
+Amazon Music Subscription,Subscriptions
+Parkinsons Drug Store 1234,Healthcare
+Shell Gas Station 1234,Transportation
+Best Buy Store 1234,Shopping
+Cable Bill Payment,Utilities
+Safeway 1234,Groceries
+Netflix.com,Subscriptions
+Shell Oil 5678,Transportation
+PG&E Bill Pay,Utilities
+Amazon Prime,Shopping
+Direct Deposit Payroll,Income
+Bank of America Transfer,Transfer
+Kaiser Permanente,Healthcare
+Walmart 9012,Groceries
+Spotify Premium,Subscriptions
+Exxon Mobil 3456,Transportation
+Comcast Internet,Utilities
+Target 7890,Shopping
+Paycheck Deposit,Income
+Chase Bank Transfer,Transfer
+CVS Pharmacy 2345,Healthcare
+Trader Joe's 5678,Groceries
+Hulu.com,Subscriptions
+Chevron 1234,Transportation
+Verizon Wireless,Utilities
+Home Depot 9012,Shopping
+AT&T Bill Pay,Uncategorized
+Wells Fargo Transfer,Transfer
+United Healthcare,Healthcare
+Whole Foods 3456,Groceries
+Apple Music,Subscriptions
+Valero 7890,Transportation
+Cox Communications,Utilities
+Best Buy 1234,Shopping
+Payroll Direct Deposit,Income
+Citi Bank Transfer,Transfer
+Rite Aid 5678,Healthcare
+Costco 9012,Groceries
+Disney+ Subscription,Subscriptions
+Mobil 1 2345,Transportation
+Spectrum Bill Pay,Utilities
+Macy's 7890,Shopping
+The Cheesecake Factory,Dining
+Regal Cinemas,Entertainment
+Chase Payroll Deposit,Income
+Bank Transfer 123,Transfer
+Urgent Care 456,Healthcare
+Starbucks 789,Dining
+AMC Theatres,Entertainment
+Walmart Grocery 012,Groceries
+T-Mobile Bill Pay,Uncategorized
+PGE Bill Payment,Utilities
+DoorDash 345,Dining
+GameStop 678,Entertainment

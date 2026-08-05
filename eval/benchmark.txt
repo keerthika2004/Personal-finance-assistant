@@ -1,0 +1,15 @@
+# Categorization Benchmark Results
+
+## Zero-shot LLM (Groq Llama-3-70b)
+- **Accuracy**: N/A (Baseline reference)
+- **Macro-F1**: N/A
+- **Avg Latency per tx**: ~500ms - 1500ms (Network bound)
+- **Approx Cost**: ~$0.05 per 1k transactions
+
+## TF-IDF + Logistic Regression (Local ML)
+- **Accuracy**: 0.8684
+- **Macro-F1**: 0.7957
+- **Avg Latency per tx**: 0.03 ms
+- **Approx Cost**: $0.00 (Local compute)
+
+*Note: Benchmarked on a generated synthetic dataset of 186 varied transactions.*
