@@ -20,8 +20,19 @@ class LLMFactory:
                 "Please configure a valid Groq API Key."
             )
 
+        # Basic Langfuse Observability Integration
+        callbacks = []
+        if os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
+            try:
+                from langfuse.callback import CallbackHandler
+                langfuse_handler = CallbackHandler()
+                callbacks.append(langfuse_handler)
+            except ImportError:
+                pass
+
         return ChatGroq(
             groq_api_key=groq_api_key,
             model_name=model,
-            temperature=temperature
+            temperature=temperature,
+            callbacks=callbacks if callbacks else None
         )
