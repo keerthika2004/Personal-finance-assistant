@@ -4,7 +4,6 @@ from pathlib import Path
 import pandas as pd
 from sklearn.metrics import f1_score, precision_score, recall_score, mean_absolute_error, mean_absolute_percentage_error
 from langfuse import Langfuse
-from langfuse.decorators import observe
 
 # Add project root to path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -17,7 +16,6 @@ from backend.app.agents.chat_graph import build_chat_graph
 # Langfuse integration for evals
 langfuse = Langfuse() if os.getenv("LANGFUSE_PUBLIC_KEY") else None
 
-@observe()
 def evaluate_categorization():
     print("\n--- Evaluating Categorization ---")
     df = pd.read_csv('data/training.csv')
@@ -36,7 +34,6 @@ def evaluate_categorization():
     print("LLM Model Macro-F1: N/A (Baseline reference)")
     return f1_ml
 
-@observe()
 def evaluate_forecasting():
     print("\n--- Evaluating Forecasting ---")
     df = generate_mock_cashflow_data()
@@ -64,7 +61,6 @@ def evaluate_forecasting():
     print(f"MAPE: {mape*100:.2f}%")
     return mae, mape
 
-@observe()
 def evaluate_anomaly_flagging():
     print("\n--- Evaluating Anomaly Flagging ---")
     # Mock data with 2 normal, 1 unusually large, 1 duplicate
@@ -104,7 +100,6 @@ def evaluate_anomaly_flagging():
     print(f"Anomaly Recall: {recall:.2f}")
     return precision, recall
 
-@observe()
 def evaluate_chatbot():
     print("\n--- Evaluating Chatbot QA ---")
     graph = build_chat_graph()

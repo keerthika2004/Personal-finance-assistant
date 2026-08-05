@@ -1,0 +1,18 @@
+
+--- Evaluating Categorization ---
+ML Model Macro-F1: 0.8596
+LLM Model Macro-F1: N/A (Baseline reference)
+
+--- Evaluating Forecasting ---
+MAE: $283.23
+MAPE: 112.39%
+
+--- Evaluating Anomaly Flagging ---
+Anomaly Precision: 1.00
+Anomaly Recall: 1.00
+
+--- Evaluating Chatbot QA ---
+Testing Question: How much did I spend at Starbucks?
+Chatbot eval failed: 'user_query'
+
+Eval complete. All calls traced in Langfuse if configured.
