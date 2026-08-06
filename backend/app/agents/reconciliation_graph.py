@@ -56,9 +56,11 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
     for item in raw_txs:
         desc = PIIRedactor.redact(item.get("raw_description", ""))
         merchant = desc
-        category = "Uncategorized"
+        category = item.get("category", "Uncategorized")
+        if not category:
+            category = "Uncategorized"
 
-        if desc:
+        if desc and category == "Uncategorized":
             if use_ml:
                 category = MLCategorizer.predict_category(desc)
                 merchant = desc

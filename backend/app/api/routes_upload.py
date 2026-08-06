@@ -1,7 +1,7 @@
 import hashlib
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Literal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -17,6 +17,7 @@ class ManualTransactionRequest(BaseModel):
     date: str
     description: str
     amount: float
+    category: Optional[str] = None
 
 
 class ChatTransactionRequest(BaseModel):
@@ -27,6 +28,8 @@ class ExtractedTransaction(BaseModel):
     amount: float
     description: str
     date: Optional[str] = None
+    transaction_type: Literal["income", "expense"]
+    category: str
 
 
 @router.post("")
@@ -163,7 +166,8 @@ async def upload_manual_transaction(
     parsed_txs = [{
         "date": request.date,
         "raw_description": request.description,
-        "amount": request.amount
+        "amount": request.amount,
+        "category": request.category
     }]
 
     # Load existing database signatures to check for duplicates across uploads
@@ -241,14 +245,14 @@ async def upload_chat_transaction(
     from langchain_core.prompts import ChatPromptTemplate
     from datetime import datetime
     
-    # Initialize LLM with structured output
-    llm = LLMFactory.get_llm(temperature=0.0)
+    # Initialize LLM with structured output using a faster model to avoid rate limits
+    llm = LLMFactory.get_llm(temperature=0.0, model_name="llama-3.1-8b-instant")
     structured_llm = llm.with_structured_output(ExtractedTransaction)
     
     today_str = datetime.now().strftime("%Y-%m-%d")
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", f"You are a financial assistant. Extract the amount and a short description (merchant/item) from the user's text. If they specify a date (e.g. yesterday, last monday, or a specific date), convert it to YYYY-MM-DD format. Today's date is {today_str}. If no date is specified, return None for date."),
+        ("system", f"You are a financial assistant. Extract the amount, a short description (merchant/item), transaction_type (income or expense), and a broad category (e.g. Salary, Groceries, Dining) from the user's text. If they specify a date, convert it to YYYY-MM-DD format. Today's date is {today_str}. If no date is specified, return None for date."),
         ("user", "{text}")
     ])
     
@@ -257,20 +261,21 @@ async def upload_chat_transaction(
     try:
         res: ExtractedTransaction = chain.invoke({"text": request.text})
     except Exception as e:
+        print(f"NLP PARSING ERROR: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"Failed to parse transaction from text: {str(e)}")
         
     # Default to today if date is missing
     tx_date = res.date if res.date else today_str
-    # Convert amount to negative if it's an expense and they didn't specify sign
-    amount = -abs(res.amount) if res.amount > 0 else res.amount
-    # If the text explicitly mentions income, salary, received, we could make it positive, but let's assume negative for now unless it's obviously income.
-    if any(word in request.text.lower() for word in ["received", "salary", "refund", "got paid", "income"]):
-        amount = abs(res.amount)
+    # Convert amount to negative if it's an expense
+    amount = -abs(res.amount) if res.transaction_type == "expense" else abs(res.amount)
         
     manual_req = ManualTransactionRequest(
         date=tx_date,
         description=res.description,
-        amount=amount
+        amount=amount,
+        category=res.category
     )
     
     return await upload_manual_transaction(manual_req, db)

@@ -1,8 +1,26 @@
 # Personal Finance Assistant (AI/ML Full-Stack Application)
 
-An intelligent, full-stack personal finance assistant built with FastAPI, Streamlit, LangGraph, and a custom ML pipeline. This platform ingests multi-format statements (CSV, PDF, Image via Tesseract OCR), categorizes transactions using a trained TF-IDF Logistic Regression model (with a fallback Llama-3-70b zero-shot categorizer), tracks financial goals, and generates 30-day Prophet cash-flow forecasts. 
+<div align="center">
+  <img src="assets/dashboard1.png" alt="Financial Dashboard" width="800"/>
+</div>
+
+An intelligent, full-stack personal finance assistant built with FastAPI, React (Vite), LangGraph, and a custom ML pipeline. This platform ingests multi-format statements (CSV, PDF, Image via Tesseract OCR), categorizes transactions using a trained TF-IDF Logistic Regression model (with a fallback Llama 3 zero-shot categorizer), tracks financial goals, and generates 30-day Prophet cash-flow forecasts. 
 
 It implements production-ready ML engineering practices, including a comprehensive evaluation harness, a dedicated PII redaction layer, and Langfuse tracing observability.
+
+## 📸 Screenshots
+
+| Dashboard & AI Quick Add | Cash Flow & Forecast |
+| :---: | :---: |
+| <img src="assets/dashboard2.png" width="400"/> | <img src="assets/dashboard3.png" width="400"/> |
+
+| Financial Saving Goals | Insights Report |
+| :---: | :---: |
+| <img src="assets/dashboard4.png" width="400"/> | <img src="assets/dashboard5.png" width="400"/> |
+
+| Transaction History | Upload Statements & Manual Entry |
+| :---: | :---: |
+| <img src="assets/page_tx.png" width="400"/> | <img src="assets/page_upload.png" width="400"/> |
 
 ## 🚀 Key Features
 - **Multi-modal Parsing**: Upload CSV, PDF, or Images. Uses `Tesseract OCR` and a dedicated parsing LangGraph agent to extract raw transaction rows.
@@ -20,7 +38,7 @@ It implements production-ready ML engineering practices, including a comprehensi
 ```mermaid
 graph TD
     %% User Interfaces
-    User([User]) -->|Uploads PDF/CSV/Image| UI[Streamlit Frontend]
+    User([User]) -->|Uploads PDF/CSV/Image| UI[React Frontend]
     User -->|Interacts with Chat| UI
     
     %% Backend APIs
@@ -55,7 +73,7 @@ graph TD
 
 ## 🛠️ Technology Stack
 - **Backend**: FastAPI, SQLAlchemy (asyncpg), PostgreSQL, Pydantic
-- **Frontend**: Streamlit, Plotly
+- **Frontend**: React, Vite, Recharts, Lucide Icons
 - **AI/ML**: LangGraph, Langchain, Scikit-Learn, Prophet, Tesseract OCR, Llama-3 (Groq API)
 - **DevOps**: Docker, Docker Compose, Pytest
 - **Observability**: Langfuse
@@ -85,7 +103,7 @@ BACKEND_URL=http://backend:8000
 ```bash
 docker-compose up --build
 ```
-- Frontend available at `http://localhost:8501`
+- Frontend available at `http://localhost:5173`
 - Backend API docs at `http://localhost:8000/docs`
 
 ### 4. Running the ML Evaluation Harness
@@ -98,7 +116,7 @@ python eval/run_evals.py
 
 ## 📂 Repository Structure
 - `/backend`: Core FastAPI app, LangGraph agents, ML services, database models, and unit tests.
-- `/frontend`: Streamlit dashboard, upload interfaces, and chatbot UI.
+- `/frontend`: React dashboard, upload interfaces, and NLP UI.
 - `/eval`: Evaluation harness and benchmarking results.
 - `/scripts`: Data synthesis and model training scripts.
 - `/data`: Synthetic training data.

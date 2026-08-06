@@ -1,18 +1,32 @@
-# Finance Assistant Frontend
+# React + TypeScript + Vite
 
-Streamlit-based frontend for the Personal Finance Assistant. 
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-## Features
-- **File Uploads**: Supports CSV, PDF, and Images for financial statement parsing.
-- **Dashboard**: Visualizes cash-flow, spending breakdown, Prophet AI forecasting, and goal tracking using Plotly.
-- **Reconciliation HITL**: A Human-In-The-Loop review screen to approve/reject flagged or anomalous transactions before committing them to the database.
-- **AI Chat**: An interactive chat interface to query the financial state using natural language.
+Currently, two official plugins are available:
 
-## Local Development
-Ensure dependencies are installed from `requirements.txt`.
-Create a `.env` with `BACKEND_URL=http://localhost:8000` (or the appropriate backend URL).
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-Run the app:
-```bash
-streamlit run app.py
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the Oxlint configuration
+
+If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+
+```json
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
 ```
+
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
