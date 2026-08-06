@@ -19,6 +19,16 @@ class ManualTransactionRequest(BaseModel):
     amount: float
 
 
+class ChatTransactionRequest(BaseModel):
+    text: str
+
+
+class ExtractedTransaction(BaseModel):
+    amount: float
+    description: str
+    date: Optional[str] = None
+
+
 @router.post("")
 async def upload_statement(
     file: UploadFile = File(...),
@@ -219,3 +229,48 @@ async def upload_manual_transaction(
         "statement_id": stmt.id,
         "requires_hitl": final_state.get("requires_hitl", False)
     }
+
+
+@router.post("/chat")
+async def upload_chat_transaction(
+    request: ChatTransactionRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Parses a natural language chat string and converts it to a manual transaction."""
+    from backend.app.services.llm_factory import LLMFactory
+    from langchain_core.prompts import ChatPromptTemplate
+    from datetime import datetime
+    
+    # Initialize LLM with structured output
+    llm = LLMFactory.get_llm(temperature=0.0)
+    structured_llm = llm.with_structured_output(ExtractedTransaction)
+    
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", f"You are a financial assistant. Extract the amount and a short description (merchant/item) from the user's text. If they specify a date (e.g. yesterday, last monday, or a specific date), convert it to YYYY-MM-DD format. Today's date is {today_str}. If no date is specified, return None for date."),
+        ("user", "{text}")
+    ])
+    
+    chain = prompt | structured_llm
+    
+    try:
+        res: ExtractedTransaction = chain.invoke({"text": request.text})
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse transaction from text: {str(e)}")
+        
+    # Default to today if date is missing
+    tx_date = res.date if res.date else today_str
+    # Convert amount to negative if it's an expense and they didn't specify sign
+    amount = -abs(res.amount) if res.amount > 0 else res.amount
+    # If the text explicitly mentions income, salary, received, we could make it positive, but let's assume negative for now unless it's obviously income.
+    if any(word in request.text.lower() for word in ["received", "salary", "refund", "got paid", "income"]):
+        amount = abs(res.amount)
+        
+    manual_req = ManualTransactionRequest(
+        date=tx_date,
+        description=res.description,
+        amount=amount
+    )
+    
+    return await upload_manual_transaction(manual_req, db)

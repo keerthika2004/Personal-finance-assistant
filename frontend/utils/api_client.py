@@ -24,6 +24,13 @@ class APIClient:
         return res.json()
 
     @staticmethod
+    def submit_chat_transaction(text: str) -> Dict[str, Any]:
+        payload = {"text": text}
+        res = requests.post(f"{API_BASE_URL}/api/v1/upload/chat", json=payload, timeout=20)
+        res.raise_for_status()
+        return res.json()
+
+    @staticmethod
     def add_manual_transaction(date: str, description: str, amount: float) -> Dict[str, Any]:
         payload = {
             "date": date,

@@ -6,7 +6,27 @@ from frontend.utils.api_client import APIClient
 
 
 def render_dashboard_view():
-    st.header("📊 Financial Intelligence Dashboard")
+    st.title("📊 Financial Dashboard")
+    st.markdown("Overview of your financial health, forecasts, and AI-driven insights.")
+
+    # NLP Quick Add Section
+    with st.expander("⚡ NLP Quick Add Expense (Powered by Groq)", expanded=False):
+        st.markdown("Type a transaction naturally (e.g., *'Bought coffee for ₹250 today'*, *'Spent 4500 on groceries last Monday'*). The AI will extract it and run it through the reconciliation pipeline!")
+        nlp_input = st.text_input("Transaction text:")
+        if st.button("Add Transaction"):
+            if nlp_input.strip():
+                with st.spinner("Processing..."):
+                    try:
+                        res = APIClient.submit_chat_transaction(nlp_input)
+                        if res.get("requires_hitl"):
+                            st.warning("Transaction was parsed but requires manual review in the HITL Queue.")
+                        else:
+                            st.success("✅ Transaction added successfully!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Failed to add transaction: {str(e)}")
+            else:
+                st.warning("Please enter some text.")
 
     try:
         data = APIClient.get_analytics_summary()
