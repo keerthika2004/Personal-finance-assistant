@@ -10,7 +10,7 @@ Under the hood, it uses a custom Machine Learning pipeline, Llama-3, and India's
 
 ## Screenshots
 
-### 📊 Dashboard & Analytics
+### Dashboard & Analytics
 | Dashboard & AI Quick Add | Monthly Cash Flow & Forecast |
 | :---: | :---: |
 | <img src="assets/dashboard2.png" width="400"/> | <img src="assets/dashboard3.png" width="400"/> |
@@ -21,7 +21,7 @@ Under the hood, it uses a custom Machine Learning pipeline, Llama-3, and India's
 | <img src="assets/dashboard4.png" width="400"/> | <img src="assets/dashboard5.png" width="400"/> |
 | *Tracking progress against custom savings targets with dynamic progress bars.* | *Category spending distribution and AI-generated financial health coaching.* |
 
-### 🏦 Live Bank Connections & RBI Account Aggregator Flow
+### Live Bank Connections & RBI Account Aggregator Flow
 | Bank Connections Dashboard | Bank Selection & Mobile Entry |
 | :---: | :---: |
 | <img src="assets/bank_connect_main.png" width="400"/> | <img src="assets/bank_modal_step1.png" width="400"/> |
@@ -32,7 +32,7 @@ Under the hood, it uses a custom Machine Learning pipeline, Llama-3, and India's
 | <img src="assets/bank_modal_step2.png" width="400"/> | <img src="assets/review_queue_hitl.png" width="400"/> |
 | *Entering the 6-digit OTP to grant read-only statement access to the assistant.* | *Review queue for approving or rejecting transactions flagged as duplicates or high-value anomalies.* |
 
-### 📜 Transaction History & Manual Imports
+### Transaction History & Manual Imports
 | Transaction History Ledger | Statement File Uploader |
 | :---: | :---: |
 | <img src="assets/page_tx.png" width="400"/> | <img src="assets/page_upload.png" width="400"/> |
