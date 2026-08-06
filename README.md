@@ -4,28 +4,39 @@
   <img src="assets/dashboard1.png" alt="Financial Dashboard" width="800"/>
 </div>
 
-Welcome to my Personal Finance Assistant! I built this project to help solve a problem I was facing: keeping track of my expenses across different accounts, receipts, and bank statements without manually entering every single detail. 
+Welcome to my Personal Finance Assistant! I built this project to help solve a problem I was facing: keeping track of my expenses across different bank accounts, receipts, and statements without manually entering every single detail. 
 
-Under the hood, it uses a custom Machine Learning pipeline and Llama-3 to automatically categorize transactions, read messy PDF statements, and even forecast my cash flow for the next 30 days using Meta's Prophet model. I also built a natural language "Quick Add" feature so I can just type things like "spent 15 bucks at starbucks" and have it instantly logged and categorized correctly.
+Under the hood, it uses a custom Machine Learning pipeline, Llama-3, and India's **RBI Account Aggregator (AA) framework** to automatically sync live bank accounts, categorize transactions, scrub PII, read PDF/image receipts, and forecast cash flow for the next 30 days using Meta's Prophet model.
 
 ## Screenshots
 
-Here's a quick look at the application in action:
-
-| Dashboard & AI Quick Add | Cash Flow & Forecast |
+### 📊 Dashboard & Analytics
+| Dashboard & AI Quick Add | Monthly Cash Flow & Forecast |
 | :---: | :---: |
 | <img src="assets/dashboard2.png" width="400"/> | <img src="assets/dashboard3.png" width="400"/> |
-| *The main dashboard featuring the NLP Quick Add input for logging transactions in natural language.* | *Interactive cash flow visualizations and a 30-day Prophet time-series forecast.* |
+| *The main dashboard featuring real-time financial health scores and NLP Quick Add.* | *Grouped monthly cash flow trends and a 30-day Prophet time-series forecast.* |
 
-| Financial Saving Goals | Insights Report |
+| Financial Saving Goals | AI Insights & Category Breakdown |
 | :---: | :---: |
 | <img src="assets/dashboard4.png" width="400"/> | <img src="assets/dashboard5.png" width="400"/> |
-| *Tracking progress against custom financial goals with dynamic progress bars.* | *AI-generated insights summarizing spending patterns and anomalies.* |
+| *Tracking progress against custom savings targets with dynamic progress bars.* | *Category spending distribution and AI-generated financial health coaching.* |
 
-| Transaction History | Upload Statements & Manual Entry |
+### 🏦 Live Bank Connections & RBI Account Aggregator Flow
+| Bank Connections Dashboard | Bank Selection & Mobile Entry |
+| :---: | :---: |
+| <img src="assets/bank_connect_main.png" width="400"/> | <img src="assets/bank_modal_step1.png" width="400"/> |
+| *The unified imports hub featuring RBI Account Aggregator sync, file upload, and manual entry.* | *Selecting from Indian banks (HDFC, SBI, ICICI, Axis) and entering registered phone numbers.* |
+
+| Authorize AA Consent via OTP | Human-in-the-Loop (HITL) Review Queue |
+| :---: | :---: |
+| <img src="assets/bank_modal_step2.png" width="400"/> | <img src="assets/review_queue_hitl.png" width="400"/> |
+| *Entering the 6-digit OTP to grant read-only statement access to the assistant.* | *Review queue for approving or rejecting transactions flagged as duplicates or high-value anomalies.* |
+
+### 📜 Transaction History & Manual Imports
+| Transaction History Ledger | Statement File Uploader |
 | :---: | :---: |
 | <img src="assets/page_tx.png" width="400"/> | <img src="assets/page_upload.png" width="400"/> |
-| *A searchable, sortable ledger of all processed transactions with formatted dates.* | *The drag-and-drop interface for parsing raw CSVs, PDFs, or Image receipts.* |
+| *Searchable and sortable transaction ledger formatted in dd/mm/yyyy date format.* | *Drag-and-drop file upload for processing CSVs, PDFs, or Image receipts via Tesseract OCR.* |
 
 ## Key Features
 - **Multi-modal Parsing**: Upload CSV, PDF, or Images. Uses `Tesseract OCR` and a dedicated parsing LangGraph agent to extract raw transaction rows.

@@ -146,9 +146,9 @@ def anomaly_scoring_node(state: ReconciliationState) -> ReconciliationState:
         score = 0.0
         reasons = []
 
-        # Rule 1: High dollar transaction (> $1,000 or > 3x average)
+        # Rule 1: High dollar transaction (> ₹30,000 or > 5x average)
         abs_val = abs(tx["amount"])
-        if abs_val > 1000 or (avg_amt > 0 and abs_val > 4 * avg_amt):
+        if abs_val > 30000 or (avg_amt > 0 and abs_val > 5 * avg_amt):
             score += 45.0
             reasons.append(f"Unusually large transaction amount (₹{abs_val:.2f})")
 

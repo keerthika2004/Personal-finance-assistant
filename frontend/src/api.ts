@@ -18,3 +18,18 @@ export const uploadStatement = async (file: File) => {
   });
   return response.data;
 };
+
+export const initiateBankSync = async (bankId: string, bankName: string, phoneNumber: string) => {
+  const response = await api.post('/bank-sync/initiate', { bank_id: bankId, bank_name: bankName, phone_number: phoneNumber });
+  return response.data;
+};
+
+export const verifyBankSyncOTP = async (sessionId: string, otp: string) => {
+  const response = await api.post('/bank-sync/verify-otp', { session_id: sessionId, otp });
+  return response.data;
+};
+
+export const triggerBankSync = async (sessionId: string) => {
+  const response = await api.post('/bank-sync/sync', { session_id: sessionId });
+  return response.data;
+};

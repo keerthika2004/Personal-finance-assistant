@@ -1,20 +1,22 @@
 import { useState } from 'react';
 import { api, uploadStatement } from '../api';
 import toast from 'react-hot-toast';
-import { UploadCloud, CheckCircle } from 'lucide-react';
+import { UploadCloud, CheckCircle, Landmark, ArrowRight, ShieldCheck } from 'lucide-react';
+import BankSyncModal from '../components/BankSyncModal';
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [manualTx, setManualTx] = useState({ date: '', description: '', amount: '', type: 'expense' });
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
 
   const handleUpload = async () => {
     if (!file) return;
     setIsUploading(true);
     try {
-      const res = await uploadStatement(file);
+      await uploadStatement(file);
       toast.success('Statement processed successfully!');
-      console.log(res);
+      setFile(null);
     } catch (err) {
       toast.error('Error processing statement');
     }
@@ -39,14 +41,53 @@ export default function UploadPage() {
 
   return (
     <div className="animate-slide-up">
-      <h1>📄 Upload Bank Statements</h1>
-      <p style={{ marginBottom: '32px' }}>Upload your bank statement PDF, CSV, or Image (PNG/JPG) file.</p>
+      <h1>📄 Bank Connections & Statement Imports</h1>
+      <p style={{ marginBottom: '32px' }}>
+        Sync live transactions via RBI Account Aggregator, upload statements (PDF, CSV, Receipt Image), or enter transactions manually.
+      </p>
+
+      {/* Featured Account Aggregator Banner */}
+      <div 
+        className="glass-card stagger-1" 
+        style={{ 
+          marginBottom: '32px', 
+          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(15, 23, 42, 0.6) 100%)',
+          border: '1px solid var(--primary)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '20px',
+          padding: '28px'
+        }}
+      >
+        <div style={{ maxWidth: '600px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <ShieldCheck color="var(--primary)" size={20} />
+            <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              RBI Regulated Account Aggregator (AA)
+            </span>
+          </div>
+          <h2 style={{ margin: '0 0 8px 0', fontSize: '1.6rem' }}>Connect Your Indian Bank Account</h2>
+          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.95rem' }}>
+            Securely link HDFC, SBI, ICICI, or Axis Bank to automatically sync live balance & daily transactions without downloading statements.
+          </p>
+        </div>
+        <button 
+          onClick={() => setIsBankModalOpen(true)} 
+          className="btn-primary" 
+          style={{ padding: '14px 28px', fontSize: '1rem' }}
+        >
+          <Landmark size={20} /> Connect Live Bank <ArrowRight size={20} />
+        </button>
+      </div>
 
       <div className="dashboard-grid">
-        <div className="glass-card stagger-1" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', border: '2px dashed var(--surface-border)' }}>
-          <UploadCloud size={64} color="var(--primary)" style={{ marginBottom: '16px' }} />
-          <h3>Drag & Drop your file here</h3>
-          <p style={{ margin: '8px 0 24px 0', fontSize: '0.9rem' }}>Supports PDF, CSV, PNG, JPG</p>
+        {/* File Upload Card */}
+        <div className="glass-card stagger-2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '320px', border: '2px dashed var(--surface-border)' }}>
+          <UploadCloud size={56} color="var(--primary)" style={{ marginBottom: '16px' }} />
+          <h3>Drag & Drop File Upload</h3>
+          <p style={{ margin: '8px 0 24px 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Supports PDF, CSV, PNG, JPG</p>
           
           <input 
             type="file" 
@@ -55,7 +96,7 @@ export default function UploadPage() {
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
           <label htmlFor="file-upload" className="btn-primary" style={{ cursor: 'pointer' }}>
-            Choose File
+            Choose Statement File
           </label>
           
           {file && (
@@ -67,22 +108,23 @@ export default function UploadPage() {
                 style={{ marginTop: '12px', width: '100%', justifyContent: 'center' }}
                 disabled={isUploading}
               >
-                {isUploading ? 'Processing Engine...' : '🚀 Process Statement'}
+                {isUploading ? 'Processing Engine...' : 'Process Statement'}
               </button>
             </div>
           )}
         </div>
 
-        <div className="glass-card stagger-2">
-          <h2>✍️ Manual Entry</h2>
-          <form onSubmit={handleManualAdd} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Manual Entry Card */}
+        <div className="glass-card stagger-3">
+          <h2>✍️ Manual Transaction Entry</h2>
+          <form onSubmit={handleManualAdd} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Date</label>
               <input type="date" className="input-field" required value={manualTx.date} onChange={e => setManualTx({...manualTx, date: e.target.value})} />
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Description / Merchant</label>
-              <input type="text" className="input-field" placeholder="e.g. Starbucks, Salary" required value={manualTx.description} onChange={e => setManualTx({...manualTx, description: e.target.value})} />
+              <input type="text" className="input-field" placeholder="e.g. Starbucks, Salary, Cash Auto" required value={manualTx.description} onChange={e => setManualTx({...manualTx, description: e.target.value})} />
             </div>
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ flex: 1 }}>
@@ -103,6 +145,13 @@ export default function UploadPage() {
           </form>
         </div>
       </div>
+
+      {/* Account Aggregator Sync Modal */}
+      <BankSyncModal
+        isOpen={isBankModalOpen}
+        onClose={() => setIsBankModalOpen(false)}
+        onSuccess={() => setIsBankModalOpen(false)}
+      />
     </div>
   );
 }
