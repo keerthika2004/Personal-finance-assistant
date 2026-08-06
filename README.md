@@ -39,11 +39,12 @@ Under the hood, it uses a custom Machine Learning pipeline, Llama-3, and India's
 | *Searchable and sortable transaction ledger formatted in dd/mm/yyyy date format.* | *Drag-and-drop file upload for processing CSVs, PDFs, or Image receipts via Tesseract OCR.* |
 
 ## Key Features
+- **RBI Account Aggregator (AA) Live Bank Sync**: Connect Indian bank accounts (HDFC, SBI, ICICI, Axis Bank) via an end-to-end encrypted Open Banking API framework using OTP authorization.
 - **Multi-modal Parsing**: Upload CSV, PDF, or Images. Uses `Tesseract OCR` and a dedicated parsing LangGraph agent to extract raw transaction rows.
 - **Hybrid ML/LLM Categorization**: 
   - *Primary*: A Scikit-Learn TF-IDF + Logistic Regression pipeline achieving ~86% Accuracy, ~0.80 Macro-F1 with ~0.03ms latency per transaction.
   - *Fallback*: A zero-shot Llama-3 LLM categorizer using Groq.
-- **Intelligent Reconciliation & Anomaly Detection**: LangGraph workflow deduplicates transactions across uploads and scores anomalies (e.g., unusually high spending or duplicated transactions), placing them in a Human-in-the-loop (HITL) review queue.
+- **Intelligent Reconciliation & Anomaly Detection**: LangGraph workflow deduplicates transactions across accounts and flags anomalies (e.g., duplicate charges or transactions > ₹30,000 INR), placing them in a Human-in-the-loop (HITL) review queue.
 - **Cash-flow Forecasting**: Uses Meta's `Prophet` time-series model to forecast the next 30 days of income and expenses, surfaced on the dashboard.
 - **Privacy & Security First**: A dedicated `PII_Redactor` strips Credit Card numbers, SSNs, and Phone Numbers via regex before any text hits the LLM boundary.
 - **Observability & Evals**: Integrated with `Langfuse` to trace LLM calls. A standalone evaluation harness (`eval/run_evals.py`) benchmarks models against synthetic ground truth datasets.
@@ -53,12 +54,14 @@ Under the hood, it uses a custom Machine Learning pipeline, Llama-3, and India's
 
 ```mermaid
 graph TD
-    %% User Interfaces
-    User([User]) -->|Uploads PDF/CSV/Image| UI[React Frontend]
+    %% User Interfaces & Bank Sync
+    User([User]) -->|OTP Consent & Bank Linking| AA[RBI Account Aggregator API / Setu]
+    User -->|Uploads PDF/CSV/Image| UI[React Frontend]
     User -->|Interacts with Chat| UI
     
     %% Backend APIs
-    UI -->|REST API calls| API[FastAPI Backend]
+    AA -->|Encrypted Payload Webhook| API[FastAPI Backend]
+    UI -->|REST API calls| API
     
     %% Parsing & Processing
     API --> ParseGraph[LangGraph: Parsing Agent]
@@ -90,6 +93,7 @@ graph TD
 ## Technology Stack
 - **Backend**: FastAPI, SQLAlchemy (asyncpg), PostgreSQL, Pydantic
 - **Frontend**: React, Vite, Recharts, Lucide Icons
+- **Banking Integration**: RBI Account Aggregator Framework (Setu / Open Banking APIs)
 - **AI/ML**: LangGraph, Langchain, Scikit-Learn, Prophet, Tesseract OCR, Llama-3 (Groq API)
 - **DevOps**: Docker, Docker Compose, Pytest
 - **Observability**: Langfuse
@@ -131,8 +135,8 @@ python eval/run_evals.py
 ```
 
 ## Repository Structure
-- `/backend`: Core FastAPI app, LangGraph agents, ML services, database models, and unit tests.
-- `/frontend`: React dashboard, upload interfaces, and NLP UI.
+- `/backend`: Core FastAPI app (`routes_bank_sync.py`, `routes_upload.py`), LangGraph agents, ML services, database models, and unit tests.
+- `/frontend`: React dashboard, bank sync consent modal, statement upload interfaces, and NLP UI.
 - `/eval`: Evaluation harness and benchmarking results.
 - `/scripts`: Data synthesis and model training scripts.
 - `/data`: Synthetic training data.
