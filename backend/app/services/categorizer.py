@@ -29,7 +29,19 @@ class MLCategorizer:
         if not model:
             return "Uncategorized"
         try:
-            return model.predict([description])[0]
+            tfidf = model.named_steps['tfidf']
+            clf = model.named_steps['clf']
+            
+            vec = tfidf.transform([description])
+            if vec.nnz == 0:
+                # Completely out of vocabulary
+                return "Uncategorized"
+                
+            probs = clf.predict_proba(vec)[0]
+            if max(probs) < 0.35: # Low confidence threshold
+                return "Uncategorized"
+                
+            return clf.predict(vec)[0]
         except Exception as e:
             logger.error(f"Prediction error: {e}")
             return "Uncategorized"

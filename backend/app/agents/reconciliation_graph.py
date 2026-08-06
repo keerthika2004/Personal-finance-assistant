@@ -29,6 +29,7 @@ class ReconciliationState(TypedDict):
     normalized_transactions: List[TransactionItem]
     flagged_transactions: List[TransactionItem]
     approved_transactions: List[TransactionItem]
+    existing_signatures: List[str]
     current_step: str
     requires_hitl: bool
 
@@ -41,16 +42,16 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
     use_ml = os.environ.get("USE_ML_CATEGORIZER", "true").lower() == "true"
     chain = None
     
-    if not use_ml:
-        try:
-            llm = LLMFactory.get_llm(temperature=0.0)
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", "You are a financial transaction normalizer. For the given raw transaction description, return the clean Merchant Name and assign one of the following Categories: [Groceries, Dining, Transportation, Utilities, Shopping, Entertainment, Income, Transfer, Healthcare, Subscriptions, Uncategorized]. Format response as: Merchant | Category"),
-                ("user", "{description}")
-            ])
-            chain = prompt | llm
-        except Exception as e:
-            print(f"Failed to initialize LLM chain: {e}")
+    # Always initialize LLM chain as fallback
+    try:
+        llm = LLMFactory.get_llm(temperature=0.0)
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a financial transaction normalizer. For the given raw transaction description, return the clean Merchant Name and assign one of the following Categories: [Groceries, Dining, Transportation, Utilities, Shopping, Entertainment, Income, Transfer, Healthcare, Subscriptions, Housing, Uncategorized]. Format response as: Merchant | Category"),
+            ("user", "{description}")
+        ])
+        chain = prompt | llm
+    except Exception as e:
+        print(f"Failed to initialize LLM chain: {e}")
 
     for item in raw_txs:
         desc = PIIRedactor.redact(item.get("raw_description", ""))
@@ -61,6 +62,17 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
             if use_ml:
                 category = MLCategorizer.predict_category(desc)
                 merchant = desc
+                # Fallback to LLM if ML is unconfident or OOV
+                if category == "Uncategorized" and chain:
+                    try:
+                        res = chain.invoke({"description": desc})
+                        content = str(res.content).strip()
+                        if "|" in content:
+                            parts = content.split("|")
+                            merchant = parts[0].strip()
+                            category = parts[1].strip()
+                    except Exception:
+                        pass
             elif chain:
                 try:
                     res = chain.invoke({"description": desc})
@@ -95,14 +107,18 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
 # Node 2: Deduplication Detection
 def deduplication_node(state: ReconciliationState) -> ReconciliationState:
     txs = state["normalized_transactions"]
+    existing_sigs = state.get("existing_signatures", [])
     seen = {}
 
     for tx in txs:
-        # Match key: date + amount + normalized_merchant
-        key = f"{tx['date']}_{tx['amount']}_{tx['normalized_merchant']}"
-        if key in seen:
+        # Match key: date + amount + normalized_merchant (case-insensitive and stripped)
+        merchant_clean = str(tx['normalized_merchant']).strip().lower()
+        key = f"{tx['date']}_{tx['amount']}_{merchant_clean}"
+        is_db_dup = key in existing_sigs
+
+        if key in seen or is_db_dup:
             tx["is_duplicate"] = True
-            tx["duplicate_of_id"] = seen[key]
+            tx["duplicate_of_id"] = seen.get(key, "existing_db_tx")
             tx["status"] = "FLAGGED"
         else:
             seen[key] = tx.get("id", key)
@@ -132,7 +148,7 @@ def anomaly_scoring_node(state: ReconciliationState) -> ReconciliationState:
         abs_val = abs(tx["amount"])
         if abs_val > 1000 or (avg_amt > 0 and abs_val > 4 * avg_amt):
             score += 45.0
-            reasons.append(f"Unusually large transaction amount (${abs_val:.2f})")
+            reasons.append(f"Unusually large transaction amount (₹{abs_val:.2f})")
 
         # Rule 2: Flagged as duplicate
         if tx["is_duplicate"]:

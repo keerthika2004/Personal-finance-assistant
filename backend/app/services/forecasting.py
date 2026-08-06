@@ -20,16 +20,32 @@ def generate_forecast(transactions: List[Dict[str, Any]], periods: int = 30) -> 
     df = pd.DataFrame(transactions)
     df['date'] = pd.to_datetime(df['date'])
     
-    # Aggregate by day
-    daily = df.groupby(df['date'].dt.date)['amount'].sum().reset_index()
-    daily.columns = ['ds', 'y']
+    # Aggregate by day and calculate cumulative balance
+    daily_sum = df.groupby(df['date'].dt.date)['amount'].sum().reset_index()
+    daily_sum['y'] = daily_sum['amount'].cumsum()
+    daily = daily_sum[['date', 'y']].rename(columns={'date': 'ds'})
     
     try:
-        m = Prophet(daily_seasonality=False)
+        # Disable seasonality to prevent overfitting on sparse data
+        m = Prophet(
+            daily_seasonality=False,
+            weekly_seasonality=False,
+            yearly_seasonality=False
+        )
         m.fit(daily)
         
         future = m.make_future_dataframe(periods=periods)
         forecast = m.predict(future)
+        
+        # Post-hoc anchor adjustment: Shift the entire forecast so it starts precisely at the user's current actual balance.
+        # This fixes a known Prophet issue where robust trend lines ignore massive recent jumps (like a Salary deposit)
+        actual_last_value = daily['y'].iloc[-1]
+        predicted_last_value = forecast.loc[forecast['ds'] == pd.to_datetime(daily['ds'].iloc[-1]), 'yhat'].values[0]
+        adjustment = actual_last_value - predicted_last_value
+        
+        forecast['yhat'] = forecast['yhat'] + adjustment
+        forecast['yhat_lower'] = forecast['yhat_lower'] + adjustment
+        forecast['yhat_upper'] = forecast['yhat_upper'] + adjustment
         
         # Only return the future forecasted period
         future_forecast = forecast.tail(periods)

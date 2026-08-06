@@ -24,6 +24,17 @@ class APIClient:
         return res.json()
 
     @staticmethod
+    def add_manual_transaction(date: str, description: str, amount: float) -> Dict[str, Any]:
+        payload = {
+            "date": date,
+            "description": description,
+            "amount": amount
+        }
+        res = requests.post(f"{API_BASE_URL}/api/v1/upload/manual", json=payload, timeout=60)
+        res.raise_for_status()
+        return res.json()
+
+    @staticmethod
     def get_pending_hitl_items() -> list:
         res = requests.get(f"{API_BASE_URL}/api/v1/reconcile/pending", timeout=10)
         res.raise_for_status()
@@ -55,8 +66,27 @@ class APIClient:
         return res.json()
 
     @staticmethod
+    def add_funds_to_goal(goal_id: str, amount: float) -> Dict[str, Any]:
+        payload = {"amount": amount}
+        res = requests.put(f"{API_BASE_URL}/api/v1/analytics/goals/{goal_id}/add", json=payload, timeout=10)
+        res.raise_for_status()
+        return res.json()
+
+    @staticmethod
+    def delete_goal(goal_id: str) -> Dict[str, Any]:
+        res = requests.delete(f"{API_BASE_URL}/api/v1/analytics/goals/{goal_id}", timeout=10)
+        res.raise_for_status()
+        return res.json()
+
+    @staticmethod
     def send_chat_message(message: str) -> Dict[str, Any]:
         payload = {"message": message}
         res = requests.post(f"{API_BASE_URL}/api/v1/chat", json=payload, timeout=30)
+        res.raise_for_status()
+        return res.json()
+
+    @staticmethod
+    def delete_transaction(tx_id: str) -> Dict[str, Any]:
+        res = requests.delete(f"{API_BASE_URL}/api/v1/analytics/transaction/{tx_id}", timeout=10)
         res.raise_for_status()
         return res.json()

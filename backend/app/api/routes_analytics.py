@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,7 +61,8 @@ async def get_analytics_summary(db: AsyncSession = Depends(get_db)):
         "total_income": 0.0,
         "total_expenses": 0.0,
         "savings_rate": 0.0,
-        "insights_report": ""
+        "insights_report": "",
+        "goal_coaching": {}
     }
 
     final_state = insights_graph.invoke(state)
@@ -88,8 +89,10 @@ async def get_analytics_summary(db: AsyncSession = Depends(get_db)):
         "category_breakdown": final_state.get("category_summary", {}),
         "monthly_trend": monthly_trend,
         "insights_report": final_state.get("insights_report", ""),
+        "goal_coaching": final_state.get("goal_coaching", {}),
         "goals": goal_dicts,
-        "forecast": forecast
+        "forecast": forecast,
+        "transactions": tx_dicts
     }
 
 
@@ -114,3 +117,55 @@ async def create_user_goal(
         "goal_id": goal.id,
         "goal_name": goal.goal_name
     }
+
+class AddFundsRequest(BaseModel):
+    amount: float
+
+@router.put("/goals/{goal_id}/add")
+async def add_funds_to_goal(
+    goal_id: str,
+    request: AddFundsRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Adds funds to an existing financial goal."""
+    query = await db.execute(select(UserGoal).where(UserGoal.id == goal_id))
+    goal = query.scalar_one_or_none()
+    
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found")
+        
+    goal.current_amount += request.amount
+    await db.commit()
+    
+    return {"message": "Funds added successfully", "new_amount": goal.current_amount}
+
+@router.delete("/goals/{goal_id}")
+async def delete_goal(
+    goal_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Deletes a specific financial goal."""
+    query = await db.execute(select(UserGoal).where(UserGoal.id == goal_id))
+    goal = query.scalar_one_or_none()
+    
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found")
+        
+    await db.delete(goal)
+    await db.commit()
+    
+    return {"message": "Goal deleted successfully"}
+
+@router.delete("/transaction/{transaction_id}")
+async def delete_transaction(transaction_id: str, db: AsyncSession = Depends(get_db)):
+    """Deletes a specific transaction by ID."""
+    query = await db.execute(select(Transaction).where(Transaction.id == transaction_id))
+    tx = query.scalar_one_or_none()
+    
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+        
+    await db.delete(tx)
+    await db.commit()
+    
+    return {"message": "Transaction deleted successfully"}

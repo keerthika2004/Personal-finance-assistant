@@ -1,5 +1,7 @@
 import hashlib
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
+from pydantic import BaseModel
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -9,6 +11,12 @@ from backend.app.services.pdf_parser import StatementParser
 from backend.app.agents.reconciliation_graph import build_reconciliation_graph
 
 router = APIRouter(prefix="/api/v1/upload", tags=["Upload"])
+
+
+class ManualTransactionRequest(BaseModel):
+    date: str
+    description: str
+    amount: float
 
 
 @router.post("")
@@ -21,17 +29,8 @@ async def upload_statement(
     if not contents:
         raise HTTPException(status_code=400, detail="Empty file submitted.")
 
-    file_hash = hashlib.sha256(contents).hexdigest()
-
-    # Check for duplicate file upload
-    query = await db.execute(select(Statement).where(Statement.file_hash == file_hash))
-    existing_stmt = query.scalar_one_or_none()
-    if existing_stmt:
-        return {
-            "message": "Statement previously uploaded.",
-            "statement_id": existing_stmt.id,
-            "status": existing_stmt.status
-        }
+    import time
+    file_hash = hashlib.sha256(contents + str(time.time()).encode()).hexdigest()
 
     # Parse raw transactions from PDF / CSV
     try:
@@ -61,6 +60,17 @@ async def upload_statement(
     db.add(stmt)
     await db.flush()
 
+    # Load existing database signatures to check for duplicates across uploads
+    query = await db.execute(select(Transaction).where(Transaction.status != "REJECTED"))
+    existing_db_txs = query.scalars().all()
+    
+    # We parse the date into the exact format it will be processed in during deduplication
+    existing_signatures = []
+    for t in existing_db_txs:
+        date_str = str(t.date)
+        merchant_clean = str(t.normalized_merchant).strip().lower()
+        existing_signatures.append(f"{date_str}_{t.amount}_{merchant_clean}")
+
     # Run LangGraph Reconciliation Graph
     reconcile_graph = build_reconciliation_graph()
     initial_state = {
@@ -69,6 +79,7 @@ async def upload_statement(
         "normalized_transactions": [],
         "flagged_transactions": [],
         "approved_transactions": [],
+        "existing_signatures": existing_signatures,
         "current_step": "START",
         "requires_hitl": False
     }
@@ -117,4 +128,94 @@ async def upload_statement(
         "flagged_count": len(final_state.get("flagged_transactions", [])),
         "requires_hitl": final_state.get("requires_hitl", False),
         "status": stmt.status
+    }
+
+
+@router.post("/manual")
+async def upload_manual_transaction(
+    request: ManualTransactionRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Manually inserts a single transaction and processes it via the LangGraph pipeline."""
+    # Create pseudo Statement record
+    import time
+    pseudo_hash = hashlib.sha256(f"manual_{request.date}_{request.description}_{request.amount}_{time.time()}".encode()).hexdigest()
+    stmt = Statement(
+        file_name="Manual Entry",
+        file_hash=pseudo_hash,
+        file_type="manual",
+        status="RECONCILING"
+    )
+    db.add(stmt)
+    await db.flush()
+
+    # Format exactly like parsed_txs output from PDF/CSV
+    parsed_txs = [{
+        "date": request.date,
+        "raw_description": request.description,
+        "amount": request.amount
+    }]
+
+    # Load existing database signatures to check for duplicates across uploads
+    query = await db.execute(select(Transaction).where(Transaction.status != "REJECTED"))
+    existing_db_txs = query.scalars().all()
+    
+    # We parse the date into the exact format it will be processed in during deduplication
+    existing_signatures = []
+    for t in existing_db_txs:
+        date_str = str(t.date)
+        merchant_clean = str(t.normalized_merchant).strip().lower()
+        existing_signatures.append(f"{date_str}_{t.amount}_{merchant_clean}")
+
+    # Run LangGraph Reconciliation Graph
+    reconcile_graph = build_reconciliation_graph()
+    initial_state = {
+        "statement_id": stmt.id,
+        "raw_transactions": parsed_txs,
+        "normalized_transactions": [],
+        "flagged_transactions": [],
+        "approved_transactions": [],
+        "existing_signatures": existing_signatures,
+        "current_step": "START",
+        "requires_hitl": False
+    }
+
+    final_state = reconcile_graph.invoke(initial_state)
+
+    # Persist the transaction
+    for tx in final_state.get("normalized_transactions", []):
+        tx_status = "PENDING"
+        if tx["status"] == "FLAGGED":
+            tx_status = "FLAGGED"
+        elif tx["status"] == "APPROVED":
+            tx_status = "APPROVED"
+
+        from datetime import datetime
+        try:
+            dt = datetime.strptime(str(tx["date"]).split(".")[0], "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            dt = datetime.utcnow()
+
+        db_tx = Transaction(
+            statement_id=stmt.id,
+            date=dt,
+            amount=tx["amount"],
+            raw_description=tx["raw_description"],
+            normalized_merchant=str(tx["normalized_merchant"])[:150] if tx["normalized_merchant"] else None,
+            category=str(tx["category"])[:100] if tx["category"] else "Uncategorized",
+            is_duplicate=tx["is_duplicate"],
+            is_suspicious=tx["is_suspicious"],
+            anomaly_score=tx["anomaly_score"],
+            anomaly_reason=tx["anomaly_reason"],
+            status=tx_status
+        )
+        db.add(db_tx)
+
+    stmt.status = "PAUSED_HITL" if final_state.get("requires_hitl") else "COMPLETED"
+    await db.commit()
+
+    return {
+        "message": "Manual transaction processed successfully.",
+        "statement_id": stmt.id,
+        "requires_hitl": final_state.get("requires_hitl", False)
     }

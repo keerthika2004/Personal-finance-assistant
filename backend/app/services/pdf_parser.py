@@ -236,7 +236,8 @@ class StatementParser:
             "- date: The date of the transaction\n"
             "- raw_description: The full, complete multiline transaction description.\n"
             "- amount: The transaction amount as a float. IMPORTANT: If it's a Debit/Withdrawal, the amount MUST be negative. If it's a Credit/Deposit, the amount MUST be positive.\n"
-            "Do NOT include the running balance as the amount. Only output valid JSON.\n\n"
+            "Do NOT include the running balance as the amount. Only output valid JSON.\n"
+            "CRITICAL: ONLY extract transactions that are explicitly present in the OCR text. Do NOT generate example or placeholder transactions. If no transactions are found, return an empty array [].\n\n"
             f"OCR TEXT:\n{ocr_text}"
         )
 

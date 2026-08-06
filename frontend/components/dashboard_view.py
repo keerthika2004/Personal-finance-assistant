@@ -61,7 +61,8 @@ def render_dashboard_view():
     st.markdown("---")
 
     # Forecasting Section
-    st.subheader("🔮 30-Day Cash Flow Forecast (Prophet AI)")
+    st.subheader("🔮 30-Day Cumulative Balance Forecast (Prophet AI)")
+    st.caption("This AI model predicts your overall bank balance trend for the next 30 days based on your historical spending and income.")
     forecast_data = data.get("forecast", {})
     if forecast_data and forecast_data.get("dates"):
         df_f = pd.DataFrame({
@@ -73,7 +74,7 @@ def render_dashboard_view():
         
         fig_forecast = go.Figure([
             go.Scatter(
-                name='Predicted Cash Flow',
+                name='Predicted Balance',
                 x=df_f['Date'],
                 y=df_f['Predicted'],
                 mode='lines',
@@ -101,7 +102,7 @@ def render_dashboard_view():
             )
         ])
         fig_forecast.update_layout(
-            yaxis_title='Predicted Transaction Amount (₹)',
+            yaxis_title='Predicted Cumulative Balance (₹)',
             hovermode="x"
         )
         st.plotly_chart(fig_forecast, use_container_width=True)
@@ -127,13 +128,90 @@ def render_dashboard_view():
                     st.error(f"Error creating goal: {ex}")
 
     goals = data.get("goals", [])
+    goal_coaching = data.get("goal_coaching", {})
     if goals:
         for g in goals:
+            g_id = g.get("id")
+            g_name = g.get("goal_name")
             target = float(g.get("target_amount", 1.0))
             current = float(g.get("current_amount", 0.0))
             pct = min(current / target * 100, 100.0) if target > 0 else 0.0
             
-            st.write(f"**{g.get('goal_name')}** — `₹{current:,.2f}` / `₹{target:,.2f}` ({pct:.1f}%)")
+            st.write(f"**{g_name}** — `₹{current:,.2f}` / `₹{target:,.2f}` ({pct:.1f}%)")
             st.progress(pct / 100.0)
+            
+            # AI Coaching for this specific goal
+            coaching_tip = goal_coaching.get(g_name)
+            if coaching_tip:
+                st.info(f"💡 **AI Tip:** {coaching_tip}")
+            
+            # Interactive Actions
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                with st.popover("💰 Add Funds"):
+                    with st.form(key=f"add_funds_{g_id}"):
+                        add_amt = st.number_input("Amount to Add (₹)", min_value=1.0, step=100.0)
+                        if st.form_submit_button("Add"):
+                            try:
+                                APIClient.add_funds_to_goal(g_id, add_amt)
+                                st.success("Funds added!")
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"Error: {ex}")
+            with col2:
+                if st.button("🗑️ Delete Goal", key=f"del_goal_{g_id}"):
+                    try:
+                        APIClient.delete_goal(g_id)
+                        st.success("Goal deleted!")
+                        st.rerun()
+                    except Exception as ex:
+                        st.error(f"Error: {ex}")
+            st.write("") # Spacer
     else:
-        st.info("No active savings goals. Create one above!")
+        st.info("💡 **Tip: Financial Savings Goals**\n\nGoals help you track your progress towards a financial target. If you don't have any yet, try setting one up!")
+        
+        scol1, scol2, scol3 = st.columns(3)
+        with scol1:
+            st.markdown("🚗 **New Car**\n\n*Target: ₹500,000*")
+        with scol2:
+            st.markdown("✈️ **Vacation**\n\n*Target: ₹50,000*")
+        with scol3:
+            st.markdown("🚨 **Emergency Fund**\n\n*Target: ₹100,000*")
+
+    st.markdown("---")
+    st.subheader("📜 Transaction History")
+    
+    transactions = data.get("transactions", [])
+    if transactions:
+        df_txs = pd.DataFrame(transactions)
+        
+        # Format the dataframe for display
+        df_txs["Date"] = pd.to_datetime(df_txs["date"]).dt.strftime('%d/%m/%Y')
+        df_txs["Merchant"] = df_txs["normalized_merchant"]
+        df_txs["Category"] = df_txs["category"]
+        
+        # Format amount as currency string for display
+        df_txs["Amount"] = df_txs["amount"].apply(lambda x: f"₹{x:,.2f}")
+        
+        # Reorder and filter columns
+        df_display = df_txs[["Date", "Merchant", "Category", "Amount"]]
+        
+        # Display as a dataframe with some styling
+        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        
+        # Add deletion UI
+        with st.expander("🗑️ Delete a Transaction"):
+            tx_options = {f"{t['date'][:10]} | {t['normalized_merchant']} | ₹{t['amount']} | {t['category']}": t['id'] for t in transactions}
+            selected_tx = st.selectbox("Select Transaction to Delete", options=list(tx_options.keys()))
+            if st.button("Delete Transaction", type="primary"):
+                tx_id = tx_options[selected_tx]
+                try:
+                    APIClient.delete_transaction(tx_id)
+                    st.success("✅ Transaction deleted successfully!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Failed to delete transaction: {str(e)}")
+    else:
+        st.info("No approved transactions found. Upload a statement or add one manually!")
+
+# Force streamlit reload

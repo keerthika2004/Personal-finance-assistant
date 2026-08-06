@@ -12,6 +12,7 @@ class InsightsState(TypedDict):
     total_expenses: float
     savings_rate: float
     insights_report: str
+    goal_coaching: Dict[str, str]
 
 
 def calculate_metrics_node(state: InsightsState) -> InsightsState:
@@ -43,14 +44,22 @@ def calculate_metrics_node(state: InsightsState) -> InsightsState:
     return state
 
 
+from pydantic import BaseModel, Field
+
+class InsightsResponse(BaseModel):
+    general_insights: str = Field(description="3 clear actionable bullet points analyzing spending behavior and progress toward financial goals.")
+    goal_advice: Dict[str, str] = Field(description="Dictionary mapping EXACT goal_name to a 1-sentence personalized actionable advice on how to reach that specific goal based on current spending categories.")
+
 def generate_llm_insights_node(state: InsightsState) -> InsightsState:
     try:
         llm = LLMFactory.get_llm(temperature=0.3)
+        structured_llm = llm.with_structured_output(InsightsResponse)
+        
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are an expert personal financial advisor. Given the monthly financial breakdown, generate 3 clear, actionable bullet points analyzing spending behavior and progress toward financial goals."),
+            ("system", "You are an expert personal financial advisor. Generate insights and specific goal advice based on the provided data."),
             ("user", "Income: ₹{income}\nExpenses: ₹{expenses}\nSavings Rate: {rate}%\nCategory Spend: {categories}\nUser Goals: {goals}")
         ])
-        chain = prompt | llm
+        chain = prompt | structured_llm
         
         res = chain.invoke({
             "income": state["total_income"],
@@ -59,13 +68,23 @@ def generate_llm_insights_node(state: InsightsState) -> InsightsState:
             "categories": str(state["category_summary"]),
             "goals": str(state.get("goals", []))
         })
-        state["insights_report"] = str(res.content).strip()
-    except Exception:
+        
+        if hasattr(res, 'general_insights'):
+            state["insights_report"] = res.general_insights
+            state["goal_coaching"] = res.goal_advice
+        else:
+            # Fallback if structured output fails
+            state["insights_report"] = "Unable to generate detailed insights."
+            state["goal_coaching"] = {}
+            
+    except Exception as e:
+        print(f"Insights Generation Error: {e}")
         state["insights_report"] = (
             f"Monthly Summary: Total Income: ₹{state['total_income']}, "
             f"Total Expenses: ₹{state['total_expenses']}, "
             f"Savings Rate: {state['savings_rate']}%."
         )
+        state["goal_coaching"] = {}
 
     return state
 
