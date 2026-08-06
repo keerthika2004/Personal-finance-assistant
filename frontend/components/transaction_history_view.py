@@ -15,19 +15,80 @@ def render_transaction_history_view():
     if transactions:
         df_txs = pd.DataFrame(transactions)
         
+        # Parse dates for accurate sorting
+        df_txs["date_parsed"] = pd.to_datetime(df_txs["date"], format='mixed')
+        
+        # Sort by date ascending as requested
+        df_txs = df_txs.sort_values(by="date_parsed", ascending=True)
+        
         # Format the dataframe for display
-        df_txs["Date"] = pd.to_datetime(df_txs["date"]).dt.strftime('%d/%m/%Y')
+        df_txs["Date"] = df_txs["date_parsed"].dt.strftime('%d/%m/%Y')
         df_txs["Merchant"] = df_txs["normalized_merchant"]
         df_txs["Category"] = df_txs["category"]
         
-        # Format amount as currency string for display
-        df_txs["Amount"] = df_txs["amount"].apply(lambda x: f"₹{x:,.2f}")
+        # Format amount as raw float instead of string so it can be edited nicely
+        df_txs["Amount"] = df_txs["amount"].astype(float)
+        
+        # Keep ID to know which row was edited
+        df_txs["ID"] = df_txs["id"]
+        
+        # Small universal filter
+        search_query = st.text_input("🔍 Search Transactions", placeholder="Filter by date, merchant, category, or amount...").strip().lower()
+        
+        if search_query:
+            # Filter rows where any of the columns contain the search query
+            mask = (
+                df_txs["Date"].str.lower().str.contains(search_query) |
+                df_txs["Merchant"].astype(str).str.lower().str.contains(search_query) |
+                df_txs["Category"].astype(str).str.lower().str.contains(search_query) |
+                df_txs["Amount"].astype(str).str.contains(search_query)
+            )
+            df_txs = df_txs[mask]
         
         # Reorder and filter columns
-        df_display = df_txs[["Date", "Merchant", "Category", "Amount"]]
+        df_display = df_txs[["ID", "Date", "Merchant", "Category", "Amount"]]
         
-        # Display as a dataframe with some styling
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        st.caption(f"Showing {len(df_display)} transactions. Double-click any cell to edit it.")
+        
+        edited_df = st.data_editor(
+            df_display, 
+            use_container_width=True, 
+            hide_index=True,
+            key="tx_editor",
+            column_config={
+                "ID": None, # Hide the ID column
+                "Amount": st.column_config.NumberColumn(
+                    "Amount (₹)",
+                    format="₹%f"
+                )
+            }
+        )
+        
+        # Check if edits were made
+        if st.session_state.get("tx_editor") and st.session_state["tx_editor"].get("edited_rows"):
+            st.warning("You have unsaved changes.")
+            if st.button("Save Changes", type="primary"):
+                try:
+                    for row_idx_str, modifications in st.session_state["tx_editor"]["edited_rows"].items():
+                        row_idx = int(row_idx_str)
+                        tx_id = df_display.iloc[row_idx]["ID"]
+                        
+                        updates = {}
+                        if "Date" in modifications:
+                            updates["date"] = modifications["Date"]
+                        if "Merchant" in modifications:
+                            updates["normalized_merchant"] = modifications["Merchant"]
+                        if "Category" in modifications:
+                            updates["category"] = modifications["Category"]
+                        if "Amount" in modifications:
+                            updates["amount"] = float(modifications["Amount"])
+                            
+                        APIClient.update_transaction(tx_id, updates)
+                        
+                    st.success("✅ Changes saved successfully!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Failed to save changes: {str(e)}")
         
         # Add deletion UI
         with st.expander("🗑️ Delete a Transaction"):

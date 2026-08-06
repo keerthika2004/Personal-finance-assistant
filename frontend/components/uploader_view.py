@@ -1,10 +1,34 @@
 import streamlit as st
+import requests
+from streamlit_lottie import st_lottie
 from frontend.utils.api_client import APIClient
 
+@st.cache_data
+def load_lottieurl(url: str):
+    try:
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+    except:
+        return None
 
 def render_uploader_view():
-    st.header("📄 Upload Bank Statements")
-    st.markdown("Upload your bank statement PDF, CSV, or Image (PNG/JPG) file. The **LangGraph Reconciliation Engine** will parse, normalize, check for duplicates, and score suspicious transactions automatically.")
+    @st.dialog("Transaction Added")
+    def show_success_dialog(msg: str):
+        st.write(msg)
+        if st.button("Close"):
+            st.rerun()
+
+    u_col1, u_col2 = st.columns([1, 4])
+    with u_col1:
+        # Document scanning animation
+        lottie_doc = load_lottieurl("https://assets9.lottiefiles.com/packages/lf20_0yfsb3a1.json")
+        if lottie_doc:
+            st_lottie(lottie_doc, height=120, key="upload_anim")
+    with u_col2:
+        st.header("📄 Upload Bank Statements")
+        st.markdown("Upload your bank statement PDF, CSV, or Image (PNG/JPG) file. The **LangGraph Reconciliation Engine** will parse, normalize, check for duplicates, and score suspicious transactions automatically.")
 
     uploaded_file = st.file_uploader("Choose a PDF, CSV, or Image bank statement file", type=["pdf", "csv", "png", "jpg", "jpeg"])
     if uploaded_file is not None:
@@ -61,8 +85,9 @@ def render_uploader_view():
                             description=m_desc,
                             amount=final_amount
                         )
-                        st.toast("✅ Transaction successfully added and processed!", icon="✅")
                         if res.get("requires_hitl"):
-                            st.toast("⚠️ This transaction was flagged. Please check the Review Queue.", icon="⚠️")
+                            show_success_dialog("⚠️ This transaction was flagged. Please check the Review Queue.")
+                        else:
+                            show_success_dialog("✅ Transaction successfully added and processed!")
                     except Exception as e:
-                        st.toast(f"❌ Error adding transaction: {str(e)}", icon="❌")
+                        show_success_dialog(f"❌ Error adding transaction: {str(e)}")

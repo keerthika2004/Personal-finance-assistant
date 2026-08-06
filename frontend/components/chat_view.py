@@ -1,10 +1,28 @@
 import streamlit as st
+import requests
+from streamlit_lottie import st_lottie
 from frontend.utils.api_client import APIClient
 
+@st.cache_data
+def load_lottieurl(url: str):
+    try:
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+    except:
+        return None
 
 def render_chat_view():
-    st.header("💬 AI Financial Advisor Chat")
-    st.markdown("Ask questions about your transactions, spending habits, savings goals, or budget advice powered by **Groq + LangGraph RAG Agent**.")
+    c_col1, c_col2 = st.columns([1, 4])
+    with c_col1:
+        # AI Bot Animation
+        lottie_ai = load_lottieurl("https://assets8.lottiefiles.com/packages/lf20_tijmpky4.json")
+        if lottie_ai:
+            st_lottie(lottie_ai, height=120, key="chat_anim")
+    with c_col2:
+        st.header("💬 AI Financial Advisor Chat")
+        st.markdown("Ask questions about your transactions, spending habits, savings goals, or budget advice powered by **Groq + LangGraph RAG Agent**.")
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = [

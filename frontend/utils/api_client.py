@@ -95,7 +95,13 @@ class APIClient:
         return res.json()
 
     @staticmethod
+    def update_transaction(tx_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        res = requests.put(f"{API_BASE_URL}/api/v1/analytics/transaction/{tx_id}", json=updates, timeout=20)
+        res.raise_for_status()
+        return res.json()
+
+    @staticmethod
     def delete_transaction(tx_id: str) -> Dict[str, Any]:
-        res = requests.delete(f"{API_BASE_URL}/api/v1/analytics/transaction/{tx_id}", timeout=10)
+        res = requests.delete(f"{API_BASE_URL}/api/v1/analytics/transaction/{tx_id}", timeout=20)
         res.raise_for_status()
         return res.json()

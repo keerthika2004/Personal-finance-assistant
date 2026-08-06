@@ -36,8 +36,9 @@ def render_hitl_view():
             with col_actions:
                 st.write("")
                 
-                # Check if we need to categorize
-                needs_category = tx.get('category') == 'Uncategorized'
+                # Check if we need to categorize (LLM might append notes to "Uncategorized")
+                cat_str = str(tx.get('category', '')).lower()
+                needs_category = "uncategorized" in cat_str or cat_str.strip() == ""
                 selected_cat = None
                 if needs_category:
                     categories = ["Groceries", "Dining", "Transportation", "Utilities", "Shopping", "Entertainment", "Income", "Transfer", "Healthcare", "Subscriptions", "Housing"]

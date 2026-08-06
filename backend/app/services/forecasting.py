@@ -18,7 +18,7 @@ def generate_forecast(transactions: List[Dict[str, Any]], periods: int = 30) -> 
         return {"dates": [], "yhat": [], "yhat_lower": [], "yhat_upper": []}
         
     df = pd.DataFrame(transactions)
-    df['date'] = pd.to_datetime(df['date'])
+    df['date'] = pd.to_datetime(df['date'], format='mixed')
     
     # Aggregate by day and calculate cumulative balance
     daily_sum = df.groupby(df['date'].dt.date)['amount'].sum().reset_index()

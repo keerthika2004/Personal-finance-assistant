@@ -2,31 +2,58 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import requests
+from streamlit_lottie import st_lottie
 from frontend.utils.api_client import APIClient
 
+@st.cache_data
+def load_lottieurl(url: str):
+    try:
+        r = requests.get(url)
+        if r.status_code != 200:
+            return None
+        return r.json()
+    except:
+        return None
 
 def render_dashboard_view():
-    st.title("📊 Financial Dashboard")
-    st.markdown("Overview of your financial health, forecasts, and AI-driven insights.")
+    d_col1, d_col2 = st.columns([1, 4])
+    with d_col1:
+        # Finance/Wallet Animation
+        lottie_anim = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_kuhijlvx.json")
+        if lottie_anim:
+            st_lottie(lottie_anim, height=120, key="dash_anim")
+            
+    with d_col2:
+        st.title("📊 Financial Dashboard")
+        st.markdown("Overview of your financial health, forecasts, and AI-driven insights.")
+
+    @st.dialog("Success")
+    def show_success_dialog(msg: str):
+        st.write(msg)
+        if st.button("Close"):
+            st.rerun()
+
 
     # NLP Quick Add Section
     with st.expander("⚡ NLP Quick Add Expense (Powered by Groq)", expanded=False):
         st.markdown("Type a transaction naturally (e.g., *'Bought coffee for ₹250 today'*, *'Spent 4500 on groceries last Monday'*). The AI will extract it and run it through the reconciliation pipeline!")
-        nlp_input = st.text_input("Transaction text:")
-        if st.button("Add Transaction"):
-            if nlp_input.strip():
-                with st.spinner("Processing..."):
-                    try:
-                        res = APIClient.submit_chat_transaction(nlp_input)
-                        if res.get("requires_hitl"):
-                            st.warning("Transaction was parsed but requires manual review in the HITL Queue.")
-                        else:
-                            st.success("✅ Transaction added successfully!")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Failed to add transaction: {str(e)}")
-            else:
-                st.warning("Please enter some text.")
+        
+        with st.form("nlp_quick_add_form", clear_on_submit=True):
+            nlp_input = st.text_input("Transaction text:")
+            if st.form_submit_button("Add Transaction"):
+                if nlp_input.strip():
+                    with st.spinner("Processing..."):
+                        try:
+                            res = APIClient.submit_chat_transaction(nlp_input)
+                            if res.get("requires_hitl"):
+                                show_success_dialog("⚠️ Transaction was parsed but requires manual review in the HITL Queue.")
+                            else:
+                                show_success_dialog("✅ Transaction added successfully!")
+                        except Exception as e:
+                            st.error(f"Failed to add transaction: {str(e)}")
+                else:
+                    st.warning("Please enter some text.")
 
     try:
         data = APIClient.get_analytics_summary()
