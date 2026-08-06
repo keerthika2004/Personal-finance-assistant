@@ -4,25 +4,30 @@
   <img src="assets/dashboard1.png" alt="Financial Dashboard" width="800"/>
 </div>
 
-An intelligent, full-stack personal finance assistant built with FastAPI, React (Vite), LangGraph, and a custom ML pipeline. This platform ingests multi-format statements (CSV, PDF, Image via Tesseract OCR), categorizes transactions using a trained TF-IDF Logistic Regression model (with a fallback Llama 3 zero-shot categorizer), tracks financial goals, and generates 30-day Prophet cash-flow forecasts. 
+Welcome to my Personal Finance Assistant! I built this project to help solve a problem I was facing: keeping track of my expenses across different accounts, receipts, and bank statements without manually entering every single detail. 
 
-It implements production-ready ML engineering practices, including a comprehensive evaluation harness, a dedicated PII redaction layer, and Langfuse tracing observability.
+Under the hood, it uses a custom Machine Learning pipeline and Llama-3 to automatically categorize transactions, read messy PDF statements, and even forecast my cash flow for the next 30 days using Meta's Prophet model. I also built a natural language "Quick Add" feature so I can just type things like "spent 15 bucks at starbucks" and have it instantly logged and categorized correctly.
 
-## 📸 Screenshots
+## Screenshots
+
+Here's a quick look at the application in action:
 
 | Dashboard & AI Quick Add | Cash Flow & Forecast |
 | :---: | :---: |
 | <img src="assets/dashboard2.png" width="400"/> | <img src="assets/dashboard3.png" width="400"/> |
+| *The main dashboard featuring the NLP Quick Add input for logging transactions in natural language.* | *Interactive cash flow visualizations and a 30-day Prophet time-series forecast.* |
 
 | Financial Saving Goals | Insights Report |
 | :---: | :---: |
 | <img src="assets/dashboard4.png" width="400"/> | <img src="assets/dashboard5.png" width="400"/> |
+| *Tracking progress against custom financial goals with dynamic progress bars.* | *AI-generated insights summarizing spending patterns and anomalies.* |
 
 | Transaction History | Upload Statements & Manual Entry |
 | :---: | :---: |
 | <img src="assets/page_tx.png" width="400"/> | <img src="assets/page_upload.png" width="400"/> |
+| *A searchable, sortable ledger of all processed transactions with formatted dates.* | *The drag-and-drop interface for parsing raw CSVs, PDFs, or Image receipts.* |
 
-## 🚀 Key Features
+## Key Features
 - **Multi-modal Parsing**: Upload CSV, PDF, or Images. Uses `Tesseract OCR` and a dedicated parsing LangGraph agent to extract raw transaction rows.
 - **Hybrid ML/LLM Categorization**: 
   - *Primary*: A Scikit-Learn TF-IDF + Logistic Regression pipeline achieving ~86% Accuracy, ~0.80 Macro-F1 with ~0.03ms latency per transaction.
@@ -33,7 +38,7 @@ It implements production-ready ML engineering practices, including a comprehensi
 - **Observability & Evals**: Integrated with `Langfuse` to trace LLM calls. A standalone evaluation harness (`eval/run_evals.py`) benchmarks models against synthetic ground truth datasets.
 - **Interactive Chatbot**: RAG-style interactive agent that can answer natural language questions about your transaction history and goals.
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph TD
@@ -71,14 +76,14 @@ graph TD
     ChatGraph -.-> Langfuse
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 - **Backend**: FastAPI, SQLAlchemy (asyncpg), PostgreSQL, Pydantic
 - **Frontend**: React, Vite, Recharts, Lucide Icons
 - **AI/ML**: LangGraph, Langchain, Scikit-Learn, Prophet, Tesseract OCR, Llama-3 (Groq API)
 - **DevOps**: Docker, Docker Compose, Pytest
 - **Observability**: Langfuse
 
-## 🏃‍♂️ How to Run Locally
+## How to Run Locally
 
 ### 1. Prerequisites
 - Docker & Docker Compose
@@ -114,12 +119,12 @@ pip install -r backend/requirements.txt
 python eval/run_evals.py
 ```
 
-## 📂 Repository Structure
+## Repository Structure
 - `/backend`: Core FastAPI app, LangGraph agents, ML services, database models, and unit tests.
 - `/frontend`: React dashboard, upload interfaces, and NLP UI.
 - `/eval`: Evaluation harness and benchmarking results.
 - `/scripts`: Data synthesis and model training scripts.
 - `/data`: Synthetic training data.
 
-## 📜 License
+## License
 MIT License
