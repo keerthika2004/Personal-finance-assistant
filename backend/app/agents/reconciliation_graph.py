@@ -161,7 +161,16 @@ def anomaly_scoring_node(state: ReconciliationState) -> ReconciliationState:
             tx["is_suspicious"] = True
             tx["anomaly_reason"] = "; ".join(reasons)
             tx["status"] = "FLAGGED"
-            flagged.append(tx)
+            if tx not in flagged:
+                flagged.append(tx)
+
+        # Rule 3: Uncategorized transaction requires manual review
+        if tx["category"] == "Uncategorized":
+            tx["is_suspicious"] = True
+            tx["anomaly_reason"] = (tx.get("anomaly_reason", "") + "; Needs Categorization").strip("; ")
+            tx["status"] = "FLAGGED"
+            if tx not in flagged:
+                flagged.append(tx)
 
     state["flagged_transactions"] = flagged
     state["requires_hitl"] = len(flagged) > 0

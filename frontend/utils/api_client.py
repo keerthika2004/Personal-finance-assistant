@@ -41,8 +41,10 @@ class APIClient:
         return res.json()
 
     @staticmethod
-    def submit_hitl_decision(tx_id: str, action: str, reason: str = "") -> Dict[str, Any]:
+    def submit_hitl_decision(tx_id: str, action: str, reason: str = "", category: str = None) -> Dict[str, Any]:
         payload = {"transaction_id": tx_id, "action": action, "reason": reason}
+        if category:
+            payload["category"] = category
         res = requests.post(f"{API_BASE_URL}/api/v1/reconcile/decision", json=payload, timeout=10)
         res.raise_for_status()
         return res.json()

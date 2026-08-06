@@ -4,6 +4,7 @@ from frontend.components.dashboard_view import render_dashboard_view
 from frontend.components.hitl_modal import render_hitl_view
 from frontend.components.uploader_view import render_uploader_view
 from frontend.components.chat_view import render_chat_view
+from frontend.components.transaction_history_view import render_transaction_history_view
 
 st.set_page_config(
     page_title="Unified Financial AI Assistant",
@@ -40,6 +41,7 @@ def main():
         "Navigation",
         [
             "📊 Dashboard",
+            "📜 Transaction History",
             "🚨 Review Queue (HITL)",
             "📄 Upload Statements",
             "💬 AI Advisor Chat"
@@ -52,6 +54,8 @@ def main():
     # Render selected view component
     if navigation == "📊 Dashboard":
         render_dashboard_view()
+    elif navigation == "📜 Transaction History":
+        render_transaction_history_view()
     elif navigation == "🚨 Review Queue (HITL)":
         render_hitl_view()
     elif navigation == "📄 Upload Statements":

@@ -35,9 +35,17 @@ def render_hitl_view():
 
             with col_actions:
                 st.write("")
+                
+                # Check if we need to categorize
+                needs_category = tx.get('category') == 'Uncategorized'
+                selected_cat = None
+                if needs_category:
+                    categories = ["Groceries", "Dining", "Transportation", "Utilities", "Shopping", "Entertainment", "Income", "Transfer", "Healthcare", "Subscriptions", "Housing"]
+                    selected_cat = st.selectbox("Assign Category", options=categories, key=f"cat_{tx['id']}")
+                
                 if st.button("✅ Approve", key=f"approve_{tx['id']}", type="primary"):
                     try:
-                        APIClient.submit_hitl_decision(tx["id"], "APPROVE")
+                        APIClient.submit_hitl_decision(tx["id"], "APPROVE", category=selected_cat)
                         st.success("Approved!")
                         st.rerun()
                     except Exception as e:

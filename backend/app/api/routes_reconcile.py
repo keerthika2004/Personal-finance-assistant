@@ -14,6 +14,7 @@ class HITLDecisionRequest(BaseModel):
     transaction_id: str
     action: str  # APPROVE or REJECT
     reason: Optional[str] = "User manual review decision"
+    category: Optional[str] = None
 
 
 @router.get("/pending")
@@ -58,7 +59,9 @@ async def submit_hitl_decision(
     action_upper = request.action.upper()
     if action_upper == "APPROVE":
         tx.status = "APPROVED"
-    elif request.action.upper() == "REJECT":
+        if request.category:
+            tx.category = request.category
+    elif action_upper == "REJECT":
         tx.status = "REJECTED"
     else:
         raise HTTPException(status_code=400, detail="Invalid action. Use 'APPROVE' or 'REJECT'.")
