@@ -5,6 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from backend.app.services.llm_factory import LLMFactory
 from backend.app.services.categorizer import MLCategorizer
 from backend.app.services.pii_redactor import PIIRedactor
+from backend.app.services.anomaly_detector import HybridAnomalyDetector
 import os
 
 
@@ -133,47 +134,17 @@ def deduplication_node(state: ReconciliationState) -> ReconciliationState:
 # Node 3: Anomaly & Suspicious Activity Scoring
 def anomaly_scoring_node(state: ReconciliationState) -> ReconciliationState:
     txs = state["normalized_transactions"]
-    flagged: List[TransactionItem] = []
-    
     if not txs:
         state["current_step"] = "SCORED"
         return state
 
-    amounts = [abs(t["amount"]) for t in txs if t["amount"] != 0]
-    avg_amt = sum(amounts) / len(amounts) if amounts else 0.0
+    historical_txs = state.get("existing_historical_txs", [])
 
-    for tx in txs:
-        score = 0.0
-        reasons = []
+    # Pass transactions to the Hybrid ML Anomaly Detector (Isolation Forest + Category Z-score)
+    scored_txs = HybridAnomalyDetector.detect_and_score(txs, historical_txs)
+    flagged = [t for t in scored_txs if t.get("status") == "FLAGGED"]
 
-        # Rule 1: High dollar transaction (> ₹30,000 or > 5x average)
-        abs_val = abs(tx["amount"])
-        if abs_val > 30000 or (avg_amt > 0 and abs_val > 5 * avg_amt):
-            score += 45.0
-            reasons.append(f"Unusually large transaction amount (₹{abs_val:.2f})")
-
-        # Rule 2: Flagged as duplicate
-        if tx["is_duplicate"]:
-            score += 40.0
-            reasons.append("Identified as duplicate transaction across accounts")
-
-        # Set final suspicion flag if score >= 40
-        tx["anomaly_score"] = min(score, 100.0)
-        if score >= 40.0:
-            tx["is_suspicious"] = True
-            tx["anomaly_reason"] = "; ".join(reasons)
-            tx["status"] = "FLAGGED"
-            if tx not in flagged:
-                flagged.append(tx)
-
-        # Rule 3: Uncategorized transaction requires manual review
-        if tx["category"] == "Uncategorized":
-            tx["is_suspicious"] = True
-            tx["anomaly_reason"] = (tx.get("anomaly_reason", "") + "; Needs Categorization").strip("; ")
-            tx["status"] = "FLAGGED"
-            if tx not in flagged:
-                flagged.append(tx)
-
+    state["normalized_transactions"] = scored_txs
     state["flagged_transactions"] = flagged
     state["requires_hitl"] = len(flagged) > 0
     state["current_step"] = "SCORED"

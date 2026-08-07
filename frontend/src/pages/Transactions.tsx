@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
-import { Search } from 'lucide-react';
+import { api, deleteTransaction } from '../api';
+import { Search, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -17,6 +18,19 @@ export default function Transactions() {
     };
     fetchTx();
   }, []);
+
+  const handleDelete = async (id: string, merchant: string) => {
+    if (window.confirm(`Are you sure you want to delete "${merchant}"? This will permanently remove it from all analytics and dashboards.`)) {
+      try {
+        await deleteTransaction(id);
+        setTransactions(prev => prev.filter(t => t.id !== id));
+        toast.success(`Transaction "${merchant}" deleted successfully!`);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to delete transaction.');
+      }
+    }
+  };
 
   const filteredTx = transactions
     .filter((t) => 
@@ -53,11 +67,12 @@ export default function Transactions() {
                 <th>Description</th>
                 <th>Category</th>
                 <th>Amount (₹)</th>
+                <th style={{ textAlign: 'center' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredTx.map((tx, idx) => (
-                <tr key={idx}>
+                <tr key={tx.id || idx}>
                   <td>{new Date(tx.date).toLocaleDateString('en-GB')}</td>
                   <td style={{ fontWeight: '500' }}>{tx.normalized_merchant}</td>
                   <td>
@@ -76,11 +91,33 @@ export default function Transactions() {
                   }}>
                     {tx.amount.toFixed(2)}
                   </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      onClick={() => handleDelete(tx.id, tx.normalized_merchant || 'Transaction')}
+                      title="Delete Transaction"
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        color: '#ef4444',
+                        padding: '6px 10px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
                 </tr>
               ))}
               {filteredTx.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '32px' }}>No transactions found.</td>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px' }}>No transactions found.</td>
                 </tr>
               )}
             </tbody>

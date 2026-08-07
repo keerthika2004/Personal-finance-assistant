@@ -33,3 +33,8 @@ export const triggerBankSync = async (sessionId: string) => {
   const response = await api.post('/bank-sync/sync', { session_id: sessionId });
   return response.data;
 };
+
+export const deleteTransaction = async (id: string) => {
+  const response = await api.delete(`/analytics/transaction/${id}`);
+  return response.data;
+};

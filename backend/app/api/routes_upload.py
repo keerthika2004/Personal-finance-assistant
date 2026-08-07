@@ -79,10 +79,16 @@ async def upload_statement(
     
     # We parse the date into the exact format it will be processed in during deduplication
     existing_signatures = []
+    existing_tx_dicts = []
     for t in existing_db_txs:
         date_str = str(t.date)
         merchant_clean = str(t.normalized_merchant).strip().lower()
         existing_signatures.append(f"{date_str}_{t.amount}_{merchant_clean}")
+        existing_tx_dicts.append({
+            "amount": t.amount,
+            "category": t.category or "Uncategorized",
+            "raw_description": t.raw_description or ""
+        })
 
     # Run LangGraph Reconciliation Graph
     reconcile_graph = build_reconciliation_graph()
@@ -93,6 +99,7 @@ async def upload_statement(
         "flagged_transactions": [],
         "approved_transactions": [],
         "existing_signatures": existing_signatures,
+        "existing_historical_txs": existing_tx_dicts,
         "current_step": "START",
         "requires_hitl": False
     }
@@ -176,10 +183,16 @@ async def upload_manual_transaction(
     
     # We parse the date into the exact format it will be processed in during deduplication
     existing_signatures = []
+    existing_tx_dicts = []
     for t in existing_db_txs:
         date_str = str(t.date)
-        merchant_clean = str(t.normalized_merchant).strip().lower()
+        merchant_clean = str(t.normalized_merchant).strip().lower() if t.normalized_merchant else ""
         existing_signatures.append(f"{date_str}_{t.amount}_{merchant_clean}")
+        existing_tx_dicts.append({
+            "amount": t.amount,
+            "category": t.category or "Uncategorized",
+            "raw_description": t.raw_description or ""
+        })
 
     # Run LangGraph Reconciliation Graph
     reconcile_graph = build_reconciliation_graph()
@@ -190,6 +203,7 @@ async def upload_manual_transaction(
         "flagged_transactions": [],
         "approved_transactions": [],
         "existing_signatures": existing_signatures,
+        "existing_historical_txs": existing_tx_dicts,
         "current_step": "START",
         "requires_hitl": False
     }

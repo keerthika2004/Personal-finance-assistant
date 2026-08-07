@@ -7,7 +7,7 @@ import BankSyncModal from '../components/BankSyncModal';
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [manualTx, setManualTx] = useState({ date: '', description: '', amount: '', type: 'expense' });
+  const [manualTx, setManualTx] = useState({ date: '', description: '', amount: '', type: 'expense', category: 'auto' });
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
 
   const handleUpload = async () => {
@@ -30,10 +30,11 @@ export default function UploadPage() {
       await api.post('/upload/manual', {
         date: new Date(manualTx.date).toISOString().slice(0, 19).replace('T', ' '),
         description: manualTx.description,
-        amount: finalAmount
+        amount: finalAmount,
+        category: manualTx.category === 'auto' ? null : manualTx.category
       });
       toast.success('Manual transaction added!');
-      setManualTx({ date: '', description: '', amount: '', type: 'expense' });
+      setManualTx({ date: '', description: '', amount: '', type: 'expense', category: 'auto' });
     } catch (err) {
       toast.error('Error adding transaction');
     }
@@ -126,6 +127,25 @@ export default function UploadPage() {
               <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Description / Merchant</label>
               <input type="text" className="input-field" placeholder="e.g. Starbucks, Salary, Cash Auto" required value={manualTx.description} onChange={e => setManualTx({...manualTx, description: e.target.value})} />
             </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Category</label>
+              <select className="input-field" value={manualTx.category} onChange={e => setManualTx({...manualTx, category: e.target.value})}>
+                <option value="auto">✨ Auto-Detect (AI / ML Categorizer)</option>
+                <option value="Dining">Dining & Restaurants</option>
+                <option value="Groceries">Groceries & Supermarket</option>
+                <option value="Online Shopping">Online Shopping</option>
+                <option value="Shopping">Shopping & Apparel</option>
+                <option value="Transportation">Transportation & Fuel</option>
+                <option value="Utilities">Utilities & Bills</option>
+                <option value="Subscriptions">Subscriptions & Fitness</option>
+                <option value="Income">Income & Salary</option>
+                <option value="Transfer">Transfer / P2P</option>
+                <option value="Housing">Housing & Rent</option>
+                <option value="Healthcare">Healthcare & Pharmacy</option>
+              </select>
+            </div>
+
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Type</label>
