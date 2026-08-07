@@ -25,27 +25,12 @@ export default function Dashboard() {
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
       setSummary({
-        total_income: 164082.00,
-        total_expenses: 56393.11,
-        net_savings: 107688.89,
-        monthly_trend: {
-          "2026-01": { income: 52000, expenses: 18450 },
-          "2026-02": { income: 54000, expenses: 19200 },
-          "2026-03": { income: 58082, expenses: 18743.11 }
-        },
-        category_breakdown: {
-          "Food & Dining": 14200,
-          "Utilities & Bills": 12500,
-          "Shopping": 15693.11,
-          "Transport": 8500,
-          "Entertainment": 5500
-        },
-        recent_transactions: [
-          { id: "1", date: "2026-03-28", merchant: "Swiggy Food Delivery", category: "Food & Dining", amount: -450.00, confidence: 0.98, user_id: "demo_user" },
-          { id: "2", date: "2026-03-26", merchant: "Salary Credit - TechCorp", category: "Income", amount: 58082.00, confidence: 1.00, user_id: "demo_user" },
-          { id: "3", date: "2026-03-24", merchant: "Amazon India Electronics", category: "Shopping", amount: -12499.00, confidence: 0.95, user_id: "demo_user" },
-          { id: "4", date: "2026-03-20", merchant: "BESCOM Electricity Bill", category: "Utilities & Bills", amount: -2850.00, confidence: 0.99, user_id: "demo_user" }
-        ]
+        total_income: 0,
+        total_expenses: 0,
+        net_savings: 0,
+        monthly_trend: {},
+        category_breakdown: {},
+        recent_transactions: []
       });
     }
   };

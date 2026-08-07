@@ -52,14 +52,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       onSuccess(user, access_token);
       onClose();
     } catch (err: any) {
-      console.warn("Backend auth/demo endpoint unreachable, initializing seamless Demo Evaluator mode.");
-      const demoUser = { id: "demo_user", name: "Demo Evaluator", email: "demo@evaluator.com" };
-      const demoToken = "demo_jwt_eyJ1c2VyX2lkIjogImRlbW9fdXNlciIsICJlbWFpbCI6ICJkZW1vQGV2YWx1YXRvci5jb20iLCAibmFtZSI6ICJEZW1vIEV2YWx1YXRvciJ9";
-      localStorage.setItem('auth_token', demoToken);
-      localStorage.setItem('auth_user', JSON.stringify(demoUser));
-      toast.success('Logged in as Demo Portfolio Evaluator!');
-      onSuccess(demoUser, demoToken);
-      onClose();
+      console.error("Demo login error:", err);
+      const msg = err.response?.data?.detail || 'Demo login failed. Please ensure the backend server is reachable.';
+      toast.error(msg);
     }
     setLoading(false);
   };
