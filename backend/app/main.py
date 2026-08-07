@@ -47,6 +47,8 @@ app.include_router(chat_router)
 app.include_router(bank_sync_router)
 
 
+@app.get("/", tags=["Health"])
+@app.head("/", tags=["Health"])
 @app.get("/health", tags=["Health"])
 async def health_check():
     return {
