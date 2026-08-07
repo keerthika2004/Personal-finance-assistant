@@ -6,6 +6,7 @@ from sqlalchemy.future import select
 
 from backend.app.db.database import get_db
 from backend.app.db.models import Transaction, TransactionStatus, AuditLog, Statement
+from backend.app.api.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/v1/reconcile", tags=["Reconciliation & HITL"])
 
@@ -18,10 +19,16 @@ class HITLDecisionRequest(BaseModel):
 
 
 @router.get("/pending")
-async def get_pending_hitl_items(db: AsyncSession = Depends(get_db)):
-    """Retrieves all flagged transactions waiting for Human-in-the-Loop user approval or rejection."""
+async def get_pending_hitl_items(
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    """Retrieves all flagged transactions waiting for Human-in-the-Loop user approval or rejection for current user."""
     query = await db.execute(
-        select(Transaction).where(Transaction.status == "FLAGGED")
+        select(Transaction).where(
+            Transaction.status == "FLAGGED",
+            Transaction.user_id == user_id
+        )
     )
     flagged_txs = query.scalars().all()
 

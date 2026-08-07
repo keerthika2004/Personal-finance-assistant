@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { TrendingUp, TrendingDown, DollarSign, Activity, Target, Zap, Plus, Trash2 } from 'lucide-react';
-import { BarChart, Bar, Legend, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Zap, Target, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -116,7 +116,7 @@ export default function Dashboard() {
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
 
   const categoryData = summary.category_breakdown 
-    ? Object.keys(summary.category_breakdown).map((key, index) => ({
+    ? Object.keys(summary.category_breakdown).map((key) => ({
         name: key,
         value: summary.category_breakdown[key]
       }))
@@ -165,7 +165,7 @@ export default function Dashboard() {
             <TrendingUp color="var(--primary)" />
           </div>
           <h2 style={{ fontSize: '2.5rem', marginTop: '16px', color: 'var(--primary)' }}>
-            ₹{summary.total_income?.toFixed(2)}
+            ₹{(summary.total_income || 0).toFixed(2)}
           </h2>
         </div>
 
@@ -175,7 +175,7 @@ export default function Dashboard() {
             <TrendingDown color="#ef4444" />
           </div>
           <h2 style={{ fontSize: '2.5rem', marginTop: '16px', color: '#ef4444' }}>
-            ₹{summary.total_expenses?.toFixed(2)}
+            ₹{(summary.total_expenses || 0).toFixed(2)}
           </h2>
         </div>
 
@@ -185,7 +185,7 @@ export default function Dashboard() {
             <DollarSign color="var(--secondary)" />
           </div>
           <h2 style={{ fontSize: '2.5rem', marginTop: '16px', color: 'var(--secondary)' }}>
-            ₹{summary.net_savings?.toFixed(2)}
+            ₹{(summary.net_savings || 0).toFixed(2)}
           </h2>
         </div>
 
@@ -223,9 +223,9 @@ export default function Dashboard() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                 >
-                  {categoryData.map((entry, index) => (
+                  {categoryData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

@@ -6,6 +6,7 @@ from sqlalchemy.future import select
 
 from backend.app.db.database import get_db
 from backend.app.db.models import Transaction, TransactionStatus, UserGoal
+from backend.app.api.auth import get_current_user_id
 from backend.app.agents.insights_graph import build_insights_graph
 from backend.app.services.forecasting import generate_forecast
 from datetime import datetime
@@ -28,14 +29,22 @@ class GoalCreateRequest(BaseModel):
 
 
 @router.get("/summary")
-async def get_analytics_summary(db: AsyncSession = Depends(get_db)):
-    """Returns aggregated KPI summary metrics, category breakdowns, and LLM insights report."""
+async def get_analytics_summary(
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    """Returns aggregated KPI summary metrics, category breakdowns, and LLM insights report for current user."""
     query = await db.execute(
-        select(Transaction).where(Transaction.status == "APPROVED")
+        select(Transaction).where(
+            Transaction.status == "APPROVED",
+            Transaction.user_id == user_id
+        )
     )
     approved_txs = query.scalars().all()
 
-    goals_query = await db.execute(select(UserGoal))
+    goals_query = await db.execute(
+        select(UserGoal).where(UserGoal.user_id == user_id)
+    )
     goals = goals_query.scalars().all()
 
     tx_dicts = [
@@ -140,10 +149,12 @@ async def get_analytics_summary(db: AsyncSession = Depends(get_db)):
 @router.post("/goals")
 async def create_user_goal(
     request: GoalCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
-    """Creates a new financial savings/budget goal."""
+    """Creates a new financial savings goal for the current user."""
     goal = UserGoal(
+        user_id=user_id,
         goal_name=request.goal_name,
         target_amount=request.target_amount,
         current_amount=request.current_amount or 0.0,

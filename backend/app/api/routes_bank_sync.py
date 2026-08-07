@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from backend.app.db.database import get_db
-from backend.app.db.models import Statement, Transaction
+from backend.app.db.models import Statement, Transaction, TransactionStatus
+from backend.app.api.auth import get_current_user_id
 from backend.app.agents.reconciliation_graph import build_reconciliation_graph
 
 router = APIRouter(prefix="/api/v1/bank-sync", tags=["Bank Sync"])
@@ -131,7 +132,11 @@ async def verify_otp(req: VerifyOTPRequest):
 
 
 @router.post("/sync")
-async def sync_bank_data(req: TriggerSyncRequest, db: AsyncSession = Depends(get_db)):
+async def trigger_bank_sync(
+    req: TriggerSyncRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
     """Fetches live transactions from the bank via Account Aggregator and runs them through the Reconciliation pipeline."""
     session = sessions.get(req.session_id)
     if not session or not session.get("verified"):
@@ -154,6 +159,7 @@ async def sync_bank_data(req: TriggerSyncRequest, db: AsyncSession = Depends(get
 
     # Create Statement record
     stmt = Statement(
+        user_id=user_id,
         file_name=f"AA_LiveSync_{bank_name}_{session['phone_number'][-4:]}.json",
         file_hash=f"aa_{uuid.uuid4().hex[:12]}",
         file_type="api_sync"
@@ -162,8 +168,8 @@ async def sync_bank_data(req: TriggerSyncRequest, db: AsyncSession = Depends(get
     await db.commit()
     await db.refresh(stmt)
 
-    # Fetch existing DB signatures for deduplication
-    result = await db.execute(select(Transaction))
+    # Fetch existing DB signatures for deduplication for this user
+    result = await db.execute(select(Transaction).where(Transaction.user_id == user_id))
     existing_db_txs = result.scalars().all()
 
     existing_signatures = []
@@ -220,6 +226,7 @@ async def sync_bank_data(req: TriggerSyncRequest, db: AsyncSession = Depends(get
             dt = datetime.utcnow()
 
         db_tx = Transaction(
+            user_id=user_id,
             statement_id=stmt.id,
             date=dt,
             amount=tx["amount"],

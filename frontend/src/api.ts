@@ -9,13 +9,25 @@ export const api = axios.create({
   }
 });
 
+// Inject Auth Token automatically into all outgoing API requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Polyfill for file uploads
 export const uploadStatement = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await axios.post(`${API_BASE}/upload`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+  const token = localStorage.getItem('auth_token');
+  const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const response = await axios.post(`${API_BASE}/upload`, formData, { headers });
   return response.data;
 };
 

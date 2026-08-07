@@ -7,6 +7,7 @@ from sqlalchemy.future import select
 
 from backend.app.db.database import get_db
 from backend.app.db.models import Statement, Transaction, TransactionStatus
+from backend.app.api.auth import get_current_user_id
 from backend.app.services.pdf_parser import StatementParser
 from backend.app.agents.reconciliation_graph import build_reconciliation_graph
 
@@ -35,7 +36,8 @@ class ExtractedTransaction(BaseModel):
 @router.post("")
 async def upload_statement(
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
     """Uploads a bank PDF or CSV statement file, parses transactions, and runs the LangGraph Reconciliation pipeline."""
     contents = await file.read()
@@ -74,7 +76,7 @@ async def upload_statement(
     await db.flush()
 
     # Load existing database signatures to check for duplicates across uploads
-    query = await db.execute(select(Transaction).where(Transaction.status != "REJECTED"))
+    query = await db.execute(select(Transaction).where(Transaction.status != "REJECTED", Transaction.user_id == user_id))
     existing_db_txs = query.scalars().all()
     
     # We parse the date into the exact format it will be processed in during deduplication
@@ -154,13 +156,15 @@ async def upload_statement(
 @router.post("/manual")
 async def upload_manual_transaction(
     request: ManualTransactionRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
     """Manually inserts a single transaction and processes it via the LangGraph pipeline."""
     # Create pseudo Statement record
     import time
-    pseudo_hash = hashlib.sha256(f"manual_{request.date}_{request.description}_{request.amount}_{time.time()}".encode()).hexdigest()
+    pseudo_hash = hashlib.sha256(f"manual_{user_id}_{request.date}_{request.description}_{request.amount}_{time.time()}".encode()).hexdigest()
     stmt = Statement(
+        user_id=user_id,
         file_name="Manual Entry",
         file_hash=pseudo_hash,
         file_type="manual",
@@ -178,7 +182,7 @@ async def upload_manual_transaction(
     }]
 
     # Load existing database signatures to check for duplicates across uploads
-    query = await db.execute(select(Transaction).where(Transaction.status != "REJECTED"))
+    query = await db.execute(select(Transaction).where(Transaction.status != "REJECTED", Transaction.user_id == user_id))
     existing_db_txs = query.scalars().all()
     
     # We parse the date into the exact format it will be processed in during deduplication

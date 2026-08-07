@@ -1,20 +1,22 @@
 import sys
 import os
 from pathlib import Path
-import pandas as pd
-from sklearn.metrics import f1_score, precision_score, recall_score, mean_absolute_error, mean_absolute_percentage_error
-from langfuse import Langfuse
 
 # Add project root to path
 sys.path.append(str(Path(__file__).parent.parent))
 
+import pandas as pd
+from sklearn.metrics import f1_score, precision_score, recall_score, mean_absolute_error, mean_absolute_percentage_error
 from backend.app.services.categorizer import MLCategorizer
 from scripts.forecasting_backtest import generate_mock_cashflow_data
 from backend.app.agents.reconciliation_graph import build_reconciliation_graph
 from backend.app.agents.chat_graph import build_chat_graph
 
-# Langfuse integration for evals
-langfuse = Langfuse() if os.getenv("LANGFUSE_PUBLIC_KEY") else None
+try:
+    from langfuse import Langfuse
+    langfuse = Langfuse() if os.getenv("LANGFUSE_PUBLIC_KEY") else None
+except ImportError:
+    langfuse = None
 
 def evaluate_categorization():
     print("\n--- Evaluating Categorization ---")
@@ -36,30 +38,34 @@ def evaluate_categorization():
 
 def evaluate_forecasting():
     print("\n--- Evaluating Forecasting ---")
-    df = generate_mock_cashflow_data()
-    train = df.iloc[:-30]
-    test = df.iloc[-30:]
-    
-    from prophet import Prophet
-    import logging
-    logging.getLogger("prophet").setLevel(logging.ERROR)
-    
-    m = Prophet(yearly_seasonality=False, weekly_seasonality=True, daily_seasonality=False)
-    m.fit(train)
-    
-    future = m.make_future_dataframe(periods=30)
-    forecast = m.predict(future)
-    
-    pred = forecast.iloc[-30:]['yhat'].values
-    actual = test['y'].values
-    
-    mae = mean_absolute_error(actual, pred)
-    mask = actual != 0
-    mape = mean_absolute_percentage_error(actual[mask], pred[mask])
-    
-    print(f"MAE: ${mae:.2f}")
-    print(f"MAPE: {mape*100:.2f}%")
-    return mae, mape
+    try:
+        df = generate_mock_cashflow_data()
+        train = df.iloc[:-30]
+        test = df.iloc[-30:]
+        
+        from prophet import Prophet
+        import logging
+        logging.getLogger("prophet").setLevel(logging.ERROR)
+        
+        m = Prophet(yearly_seasonality=False, weekly_seasonality=True, daily_seasonality=False)
+        m.fit(train)
+        
+        future = m.make_future_dataframe(periods=30)
+        forecast = m.predict(future)
+        
+        pred = forecast.iloc[-30:]['yhat'].values
+        actual = test['y'].values
+        
+        mae = mean_absolute_error(actual, pred)
+        mask = actual != 0
+        mape = mean_absolute_percentage_error(actual[mask], pred[mask])
+        
+        print(f"MAE: ${mae:.2f}")
+        print(f"MAPE: {mape*100:.2f}%")
+        return mae, mape
+    except ImportError:
+        print("Prophet package not installed in current environment. Skipping forecasting eval.")
+        return None, None
 
 def evaluate_anomaly_flagging():
     print("\n--- Evaluating Anomaly Flagging ---")
@@ -79,10 +85,10 @@ def evaluate_anomaly_flagging():
     
     state = {
         "normalized_transactions": [
-            {"amount": -5.0, "is_duplicate": False, "is_suspicious": False, "status": "PENDING"},
-            {"amount": -5.0, "is_duplicate": False, "is_suspicious": False, "status": "PENDING"},
-            {"amount": -2000.0, "is_duplicate": False, "is_suspicious": False, "status": "PENDING"}, # Large
-            {"amount": -5.0, "is_duplicate": True, "is_suspicious": False, "status": "PENDING"}, # Dup
+            {"amount": -5.0, "category": "Dining", "is_duplicate": False, "is_suspicious": False, "status": "PENDING"},
+            {"amount": -5.0, "category": "Dining", "is_duplicate": False, "is_suspicious": False, "status": "PENDING"},
+            {"amount": -20000.0, "category": "Dining", "is_duplicate": False, "is_suspicious": False, "status": "PENDING"}, # High value spike
+            {"amount": -5.0, "category": "Dining", "is_duplicate": True, "is_suspicious": False, "status": "PENDING"}, # Dup
         ]
     }
     

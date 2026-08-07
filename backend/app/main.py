@@ -9,6 +9,7 @@ from backend.app.api.routes_reconcile import router as reconcile_router
 from backend.app.api.routes_analytics import router as analytics_router
 from backend.app.api.routes_chat import router as chat_router
 from backend.app.api.routes_bank_sync import router as bank_sync_router
+from backend.app.api.auth import router as auth_router
 
 
 @asynccontextmanager
@@ -38,6 +39,7 @@ app.add_middleware(
 )
 
 # Include Router Modules
+app.include_router(auth_router)
 app.include_router(upload_router)
 app.include_router(reconcile_router)
 app.include_router(analytics_router)

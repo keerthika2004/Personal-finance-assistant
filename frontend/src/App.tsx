@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, List, Upload, MessageSquare, Activity } from 'lucide-react';
+import { LayoutDashboard, FileText, List, Upload, MessageSquare, Activity, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { api } from './api';
+import AuthModal from './components/AuthModal';
 
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
@@ -10,7 +11,13 @@ import ReviewQueue from './pages/ReviewQueue';
 import UploadPage from './pages/UploadPage';
 import Chat from './pages/Chat';
 
-function Sidebar() {
+interface AppProps {
+  user: any;
+  onOpenAuth: () => void;
+  onLogout: () => void;
+}
+
+function Sidebar({ user, onOpenAuth, onLogout }: AppProps) {
   const location = useLocation();
   const path = location.pathname;
   const [healthScore, setHealthScore] = useState<number | null>(null);
@@ -25,14 +32,43 @@ function Sidebar() {
       }
     };
     fetchHealth();
-  }, []);
+  }, [user]);
 
   return (
     <div className="sidebar animate-slide-up">
       <div className="sidebar-header">
-        <h2 style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h2 style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
           <span style={{ fontSize: '28px' }}>💰</span> FinAI Assistant
         </h2>
+      </div>
+
+      {/* User Account Status */}
+      <div className="glass-card" style={{ padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>
+                {user.name ? user.name[0].toUpperCase() : 'U'}
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-main)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{user.name || 'User'}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{user.email || 'Free Tier'}</div>
+              </div>
+            </div>
+            <button onClick={onLogout} title="Sign Out" style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}>
+              <LogOut size={18} />
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              <UserIcon size={16} /> Guest Mode
+            </div>
+            <button onClick={onOpenAuth} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+              <LogIn size={14} /> Sign In
+            </button>
+          </div>
+        )}
       </div>
 
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
@@ -71,18 +107,36 @@ function Sidebar() {
       )}
 
       <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
-        <p style={{ fontSize: '0.85rem', marginBottom: '8px' }}>Powered by</p>
-        <p style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>FastAPI + React + LangGraph</p>
+        <p style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Powered by</p>
+        <p style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem', margin: 0 }}>FastAPI + React + LangGraph</p>
       </div>
     </div>
   );
 }
 
 function App() {
+  const [user, setUser] = useState<any>(() => {
+    const saved = localStorage.getItem('auth_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  const handleAuthSuccess = (userData: any) => {
+    setUser(userData);
+    window.location.reload();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    setUser(null);
+    window.location.reload();
+  };
+
   return (
     <Router>
       <div className="app-container">
-        <Sidebar />
+        <Sidebar user={user} onOpenAuth={() => setIsAuthOpen(true)} onLogout={handleLogout} />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -92,6 +146,11 @@ function App() {
             <Route path="/chat" element={<Chat />} />
           </Routes>
         </main>
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onSuccess={handleAuthSuccess}
+        />
         <Toaster position="bottom-right" toastOptions={{
           style: {
             background: 'var(--surface-hover)',

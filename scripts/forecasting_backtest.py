@@ -1,15 +1,13 @@
 import pandas as pd
 import numpy as np
-from prophet import Prophet
-import sys
-from pathlib import Path
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 import warnings
-
-# Suppress Prophet logging noise
-import logging
-logging.getLogger("prophet").setLevel(logging.ERROR)
-logging.getLogger("cmdstanpy").disabled=True
+try:
+    from prophet import Prophet
+    import logging
+    logging.getLogger("prophet").setLevel(logging.ERROR)
+    logging.getLogger("cmdstanpy").disabled=True
+except ImportError:
+    Prophet = None
 warnings.filterwarnings("ignore")
 
 def generate_mock_cashflow_data():

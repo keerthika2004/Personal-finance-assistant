@@ -1,7 +1,13 @@
 import os
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
-from langchain_core.language_models import BaseChatModel
+try:
+    from langchain_groq import ChatGroq
+except ImportError:
+    ChatGroq = None
+try:
+    from langchain_core.language_models import BaseChatModel
+except ImportError:
+    BaseChatModel = None
 
 load_dotenv()
 
