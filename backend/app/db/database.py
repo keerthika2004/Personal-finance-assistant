@@ -43,6 +43,17 @@ async def get_db():
 
 async def init_db():
     """Initialize database tables asynchronously."""
+    from sqlalchemy import text
+    
+    # Migrate existing ENUM columns to VARCHAR if needed (fixes asyncpg compatibility)
+    async with engine.begin() as conn:
+        try:
+            await conn.execute(text(
+                "ALTER TABLE transactions ALTER COLUMN status TYPE VARCHAR(50) USING status::text"
+            ))
+        except Exception:
+            pass  # Table doesn't exist yet or column is already VARCHAR
+    
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         

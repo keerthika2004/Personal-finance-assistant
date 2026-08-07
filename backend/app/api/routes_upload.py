@@ -256,7 +256,8 @@ async def upload_manual_transaction(
 @router.post("/chat")
 async def upload_chat_transaction(
     request: ChatTransactionRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
     """Parses a natural language chat string and converts it to a manual transaction."""
     from backend.app.services.llm_factory import LLMFactory
@@ -285,15 +286,32 @@ async def upload_chat_transaction(
         raise HTTPException(status_code=400, detail=f"Failed to parse transaction from text: {str(e)}")
         
     # Default to today if date is missing
-    tx_date = res.date if res.date else today_str
+    tx_date_str = res.date if res.date else today_str
+    try:
+        tx_date = datetime.strptime(tx_date_str, "%Y-%m-%d")
+    except ValueError:
+        tx_date = datetime.utcnow()
+
     # Convert amount to negative if it's an expense
     amount = -abs(res.amount) if res.transaction_type == "expense" else abs(res.amount)
-        
-    manual_req = ManualTransactionRequest(
-        date=tx_date,
-        description=res.description,
-        amount=amount,
-        category=res.category
-    )
     
-    return await upload_manual_transaction(manual_req, db)
+    # Directly insert the transaction into the database
+    new_tx = Transaction(
+        user_id=user_id,
+        date=tx_date,
+        amount=amount,
+        raw_description=res.description,
+        normalized_merchant=res.description[:150],
+        category=res.category[:100] if res.category else "Uncategorized",
+        status="APPROVED"
+    )
+    db.add(new_tx)
+    await db.commit()
+    await db.refresh(new_tx)
+    
+    return {
+        "message": "Transaction added successfully via AI.",
+        "transaction_id": new_tx.id,
+        "requires_hitl": False
+    }
+
