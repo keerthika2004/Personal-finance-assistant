@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { FULL_DEMO_SUMMARY } from '../demoData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Zap, Target, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -24,40 +25,7 @@ export default function Dashboard() {
       setSummary(res.data);
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
-      setSummary({
-        total_income: 164082.00,
-        total_expenses: 56393.11,
-        net_savings: 107688.89,
-        monthly_trend: {
-          "2026-08": { income: 160462.00, expenses: 26499.00 },
-          "2026-07": { income: 3500.00, expenses: 15382.00 },
-          "2026-05": { income: 120.00, expenses: 14512.11 }
-        },
-        category_breakdown: {
-          "Transfer": 28916.11,
-          "Housing": 9000.00,
-          "Shopping": 7054.00,
-          "Subscriptions": 5997.00,
-          "Transportation": 1902.00,
-          "Dining": 1493.00,
-          "Utilities": 979.00,
-          "Groceries": 982.00
-        },
-        recent_transactions: [
-          { id: "e4d36ee6", date: "2026-08-07", merchant: "Samosa party", category: "Dining", amount: -10000.00, confidence: 0.98, user_id: "demo_user" },
-          { id: "73d1573e", date: "2026-08-06", merchant: "cashback from amazon", category: "Online Shopping", amount: 100.00, confidence: 1.00, user_id: "demo_user" },
-          { id: "4ff6d8d2", date: "2026-08-06", merchant: "from my friend", category: "Transfer", amount: 50.00, confidence: 0.95, user_id: "demo_user" },
-          { id: "a434a517", date: "2026-08-06", merchant: "candy", category: "Groceries", amount: -10.00, confidence: 0.99, user_id: "demo_user" },
-          { id: "040e1a87", date: "2026-08-06", merchant: "Starbucks", category: "Dining", amount: 15000.00, confidence: 0.95, user_id: "demo_user" },
-          { id: "97b99053", date: "2026-08-06", merchant: "nykaa serum", category: "Shopping", amount: -1000.00, confidence: 0.97, user_id: "demo_user" },
-          { id: "25676a8a", date: "2026-08-06", merchant: "chips from zepto", category: "Groceries", amount: -200.00, confidence: 0.99, user_id: "demo_user" },
-          { id: "a0179865", date: "2026-08-06", merchant: "Burger from McDonalds", category: "Dining", amount: -350.00, confidence: 0.98, user_id: "demo_user" },
-          { id: "fc5158b0", date: "2026-08-06", merchant: "chicken popcorn", category: "Dining", amount: -110.00, confidence: 0.96, user_id: "demo_user" },
-          { id: "22186e64", date: "2026-08-06", merchant: "AXIS BANK CREDIT CARD REWARD CASHBACK", category: "Income", amount: 1200.00, confidence: 1.00, user_id: "demo_user" },
-          { id: "bd16d36a", date: "2026-08-06", merchant: "rent", category: "Housing", amount: -2000.00, confidence: 0.99, user_id: "demo_user" },
-          { id: "9425595d", date: "2026-08-06", merchant: "biscuits", category: "Groceries", amount: -15.00, confidence: 0.99, user_id: "demo_user" }
-        ]
-      });
+      setSummary(FULL_DEMO_SUMMARY);
     }
   };
 
