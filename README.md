@@ -17,7 +17,7 @@
 
 > [!IMPORTANT]
 > ### Live Interactive Demo
-> **Try the platform live in your browser:** [**https://finai-assistant.vercel.app**](https://finai-assistant.vercel.app)
+> **Try the platform live in your browser:** [**https://personal-finance-assistant-orcin.vercel.app**](https://personal-finance-assistant-orcin.vercel.app)
 > 
 >  **1-Click Recruiter Evaluation:** Click **"Demo Login"** on the sign-in modal to immediately test the populated financial dashboard, interactive cash flow forecasting, and live RBI Account Aggregator bank sync simulation with zero setup required!
 
