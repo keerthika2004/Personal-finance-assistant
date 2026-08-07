@@ -1,6 +1,29 @@
 # FinAI Assistant — Full-Stack AI/ML Personal Finance Platform
 
 <div align="center">
+
+[![CI/CD Pipeline](https://github.com/keerthika2004/Personal-finance-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/keerthika2004/Personal-finance-assistant/actions)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6F00?style=flat&logo=langchain&logoColor=white)](https://langchain.com)
+[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-Isolation_Forest-F7931E?style=flat&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+</div>
+
+<br/>
+
+> [!IMPORTANT]
+> ### Live Interactive Demo
+> **Try the platform live in your browser:** [**https://finai-assistant.vercel.app**](https://github.com/keerthika2004/Personal-finance-assistant)
+> 
+>  **1-Click Recruiter Evaluation:** Click **"Demo Login"** on the sign-in modal to immediately test the populated financial dashboard, interactive cash flow forecasting, and live RBI Account Aggregator bank sync simulation with zero setup required!
+
+<br/>
+
+<div align="center">
   <img src="assets/dashboard1.png" alt="Financial Dashboard" width="800"/>
 </div>
 
