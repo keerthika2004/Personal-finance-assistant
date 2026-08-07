@@ -45,3 +45,38 @@ async def init_db():
     """Initialize database tables asynchronously."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        
+    import json
+    from datetime import datetime
+    from sqlalchemy import select
+    from backend.app.db.models import Transaction, UserGoal, User
+    
+    async with AsyncSessionLocal() as session:
+        user_query = await session.execute(select(User).where(User.id == "demo_user"))
+        if not user_query.scalar_one_or_none():
+            session.add(User(id="demo_user", email="demo@example.com", name="Demo User", password_hash="dummy"))
+            await session.commit()
+            
+        tx_query = await session.execute(select(Transaction).where(Transaction.user_id == "demo_user"))
+        if not tx_query.scalars().first():
+            try:
+                seed_path = os.path.join(os.path.dirname(__file__), "seed_data.json")
+                if os.path.exists(seed_path):
+                    with open(seed_path, 'r') as f:
+                        seed_data = json.load(f)
+                    for tx in seed_data.get('transactions', []):
+                        session.add(Transaction(
+                            id=tx['id'], user_id="demo_user", 
+                            date=datetime.fromisoformat(tx['date']), amount=tx['amount'], 
+                            category=tx['category'], normalized_merchant=tx['normalized_merchant'], 
+                            raw_description=tx['normalized_merchant'], status="APPROVED"
+                        ))
+                    for goal in seed_data.get('goals', []):
+                        session.add(UserGoal(
+                            id=goal['id'], user_id="demo_user", goal_name=goal['goal_name'], 
+                            target_amount=goal['target_amount'], current_amount=goal['current_amount'], 
+                            category_target=goal['category_target']
+                        ))
+                    await session.commit()
+            except Exception as e:
+                print(f"Error seeding data: {e}")
