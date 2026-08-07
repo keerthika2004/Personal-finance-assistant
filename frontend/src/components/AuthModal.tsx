@@ -40,22 +40,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     setLoading(false);
   };
 
-  const handleDemoLogin = async () => {
+  const handleDemoLogin = () => {
     setLoading(true);
-    try {
-      const res = await api.post('/auth/demo');
-      const { access_token, user } = res.data;
-      localStorage.setItem('auth_token', access_token);
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      
-      toast.success('Logged in as Demo Portfolio Evaluator!');
-      onSuccess(user, access_token);
-      onClose();
-    } catch (err: any) {
-      console.error("Demo login error:", err);
-      const msg = err.response?.data?.detail || 'Demo login failed. Please ensure the backend server is reachable.';
-      toast.error(msg);
-    }
+    const demoUser = { user_id: "demo_user", id: "demo_user", name: "Demo Evaluator", email: "demo@financial-assistant.ai" };
+    const demoToken = "demo_jwt_eyJ1c2VyX2lkIjogImRlbW9fdXNlciIsICJlbWFpbCI6ICJkZW1vQGZpbmFuY2lhbC1hc3Npc3RhbnQuYWkiLCAibmFtZSI6ICJEZW1vIEV2YWx1YXRvciJ9";
+    
+    localStorage.setItem('auth_token', demoToken);
+    localStorage.setItem('auth_user', JSON.stringify(demoUser));
+    
+    toast.success('Logged in as Demo Portfolio Evaluator!');
+    onSuccess(demoUser, demoToken);
+    onClose();
     setLoading(false);
   };
 
