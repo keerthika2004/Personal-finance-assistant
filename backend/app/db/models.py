@@ -75,8 +75,7 @@ class Transaction(Base):
     anomaly_score = Column(Float, default=0.0)  # 0 to 100 risk score
     anomaly_reason = Column(Text, nullable=True)
     
-    from sqlalchemy.dialects.postgresql import ENUM as PGEnum
-    status = Column(PGEnum("PENDING", "APPROVED", "REJECTED", "FLAGGED", name="transactionstatus", create_type=False), default="PENDING", nullable=False)
+    status = Column(String(50), default="PENDING", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
