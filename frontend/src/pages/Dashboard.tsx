@@ -24,6 +24,14 @@ export default function Dashboard() {
       setSummary(res.data);
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
+      setSummary({
+        total_income: 0,
+        total_expenses: 0,
+        net_savings: 0,
+        monthly_trend: {},
+        category_breakdown: {},
+        recent_transactions: []
+      });
     }
   };
 

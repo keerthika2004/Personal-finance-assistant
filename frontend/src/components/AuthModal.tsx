@@ -51,8 +51,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       toast.success('Logged in as Demo Portfolio Evaluator!');
       onSuccess(user, access_token);
       onClose();
-    } catch (err) {
-      toast.error('Demo login failed.');
+    } catch (err: any) {
+      console.error("Demo login error:", err);
+      const msg = err.response?.data?.detail || 'Demo login failed. Make sure API backend is connected.';
+      toast.error(msg);
     }
     setLoading(false);
   };

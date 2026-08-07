@@ -121,8 +121,19 @@ function App() {
   });
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
-  const handleAuthSuccess = (userData: any) => {
+  useEffect(() => {
+    if (!user) {
+      setIsAuthOpen(true);
+    }
+  }, [user]);
+
+  const handleAuthSuccess = (userData: any, token?: string) => {
+    if (token) {
+      localStorage.setItem('auth_token', token);
+    }
+    localStorage.setItem('auth_user', JSON.stringify(userData));
     setUser(userData);
+    setIsAuthOpen(false);
     window.location.reload();
   };
 
