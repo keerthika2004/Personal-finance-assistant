@@ -1,17 +1,23 @@
-import base64
-import hashlib
-import json
+import os
 import time
+import jwt
+import bcrypt
 from fastapi import APIRouter, HTTPException, Header, Request, Depends, status
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from dotenv import load_dotenv
 
 from backend.app.db.database import get_db
 from backend.app.db.models import User
 
+load_dotenv("backend/.env")
+
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback-secret-key-for-dev")
+ALGORITHM = "HS256"
 
 
 class LoginRequest(BaseModel):
@@ -26,7 +32,15 @@ class RegisterRequest(BaseModel):
 
 
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    try:
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except Exception:
+        return False
 
 
 def create_token(user_id: str, email: str, name: str) -> str:
@@ -36,18 +50,16 @@ def create_token(user_id: str, email: str, name: str) -> str:
         "name": name,
         "exp": int(time.time()) + (30 * 24 * 3600)  # 30 days
     }
-    encoded = base64.b64encode(json.dumps(payload).encode()).decode()
-    return f"demo_jwt_{encoded}"
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> Optional[dict]:
-    if not token or not token.startswith("demo_jwt_"):
+    if not token:
         return None
     try:
-        raw = token.replace("demo_jwt_", "")
-        data = json.loads(base64.b64decode(raw.encode()).decode())
+        data = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return data
-    except Exception:
+    except jwt.PyJWTError:
         return None
 
 
@@ -113,7 +125,7 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     query = await db.execute(select(User).where(User.email == email_clean))
     user = query.scalar_one_or_none()
 
-    if not user or user.password_hash != hash_password(request.password):
+    if not user or not verify_password(request.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password. Please check your credentials."
