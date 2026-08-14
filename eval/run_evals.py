@@ -1,13 +1,19 @@
-from backend.app.agents.reconciliation_graph import hitl_review_pause_node
-from conda_package_streaming import package_streaming
-from IPython.core.macro import Macro
-from transformers.utils import dummy_essentia_and_librosa_and_pretty_midi_and_scipy_and_torch_objects
 import sys
 import os
 from pathlib import Path
 
 # Add project root to path
-sys.path.append(str(Path(__file__).parent.parent))
+project_root = Path(__file__).parent.parent
+sys.path.append(str(project_root))
+
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv(project_root / "backend" / ".env")
+
+from backend.app.agents.reconciliation_graph import hitl_review_pause_node
+from conda_package_streaming import package_streaming
+from IPython.core.macro import Macro
+from transformers.utils import dummy_essentia_and_librosa_and_pretty_midi_and_scipy_and_torch_objects
 
 import pandas as pd
 import numpy as np
@@ -76,16 +82,16 @@ def evaluate_categorization():
     
 def evaluate_11m_categorization(descriptions, truths, sample_cap=40):
     """Fills in the LLM baseline the old harness skipped. Capped for cost."""
-    if not os.getenv("GROOAPI_KEY") or os.getenv("GROQ API_KEY") == "your_groq_api key here":
+    if not os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") == "your_groq_api_key_here":
         return None
     try:
         from pydantic import BaseModel, Field
         from backend.app.services.llm_factory import LLMFactory 
-        from langchain_core.prompts import chatPromptTemplate
+        from langchain_core.prompts import ChatPromptTemplate
         class CategoryPrediction(BaseModel):
             category: str = Field(description=f"Exactly one of: {', '.join(CATEGORIES)}")
-        llm = LLMFactory.get_11m(temperature=0.0).with_structured_output(CategoryPrediction)
-        prompt =chatPromptTemplate.frommessages([
+        llm = LLMFactory.get_llm(temperature=0.0).with_structured_output(CategoryPrediction)
+        prompt = ChatPromptTemplate.from_messages([
             ("system", "You are a transaction categorizer. Assign exactly one category "
                     f"from this list: {', '.join(CATEGORIES)}."),
             ("user", "Transaction description: {desc}"),

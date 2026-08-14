@@ -1,19 +1,68 @@
 
---- Evaluating Categorization ---
-ML Model Macro-F1: 0.8596
-LLM Model Macro-F1: N/A (Baseline reference)
+--- Evaluating Categorization (held-out test set) ---
+TF-IDF+LogReg Accuracy: 0.8571
+Macro-F1: 0.8439
+
+Per-class report:
+                precision    recall  f1-score   support
+
+        Dining       0.50      1.00      0.67         3
+ Entertainment       1.00      0.33      0.50         3
+     Groceries       0.83      1.00      0.91         5
+    Healthcare       1.00      0.80      0.89         5
+       Housing       1.00      1.00      1.00         1
+        Income       1.00      0.80      0.89         5
+      Shopping       1.00      0.60      0.75         5
+ Subscriptions       1.00      1.00      1.00         4
+      Transfer       1.00      1.00      1.00         5
+Transportation       0.67      1.00      0.80         4
+ Uncategorized       1.00      0.67      0.80         3
+     Utilities       0.86      1.00      0.92         6
+
+      accuracy                           0.86        49
+     macro avg       0.90      0.85      0.84        49
+  weighted avg       0.91      0.86      0.85        49
+
+Confusion matrix (rows-true, cols-pred):
+labels: ['Dining', 'Entertainment', 'Groceries', 'Healthcare', 'Housing', 'Income', 'Shopping', 'Subscriptions', 'Transfer', 'Transportation', 'Uncategorized', 'Utilities']
+[[3 0 0 0 0 0 0 0 0 0 0 0]
+ [1 1 0 0 0 0 0 0 0 1 0 0]
+ [0 0 5 0 0 0 0 0 0 0 0 0]
+ [1 0 0 4 0 0 0 0 0 0 0 0]
+ [0 0 0 0 1 0 0 0 0 0 0 0]
+ [1 0 0 0 0 4 0 0 0 0 0 0]
+ [0 0 1 0 0 0 3 0 0 1 0 0]
+ [0 0 0 0 0 0 0 4 0 0 0 0]
+ [0 0 0 0 0 0 0 0 5 0 0 0]
+ [0 0 0 0 0 0 0 0 0 4 0 0]
+ [0 0 0 0 0 0 0 0 0 0 2 1]
+ [0 0 0 0 0 0 0 0 0 0 0 6]]
+
+== Categorization summary ==
+Local ML Macro-F1:  0.8439
+LLM Macro-F1: 0.8229
 
 --- Evaluating Forecasting ---
-MAE: $283.23
-MAPE: 112.39%
+Prophet MAE: $ 283.23 SMAPE: 196.0% MASE: 0.64
+Naive MAE: $89.89
+=> Prophet is BETTER than seasonal_naive (MASE 0.64)
+Note: MAPE dropped - it's meaningless here (series crosses zero). SMAPE/MASE are honest.
 
---- Evaluating Anomaly Flagging ---
-Anomaly Precision: 1.00
-Anomaly Recall: 1.00
+--- Evaluating Anomaly Flagging (synthetic labeled set) ---
+n=40 positives(true)=40
+Precision: 0.00   Recall: 0.00   F1: 0.00
+[[ 0  0]
+ [40  0]]
+Note: SYNTHETIC data. Replace with hand-labeled real transactions for a defensible number.
 
 --- Evaluating Chatbot QA ---
-Testing Question: How much did I spend at Starbucks?
-Answer: You spent $5.50 at Starbucks on 2024-01-01.
-Chatbot Accuracy (rule-based): 1.0
+[PASS] How much did I spend at Starbucks in total? (expected 10.00)
+   -> You spent a total of $10.00 at Starbucks. This is calculated by adding the two Starbucks transactions: $5.50 + $4.50.
+[FAIL] What was my single largest expense? (expected 150.00)
+   -> Your single largest expense was $150.0 at Target on 2024-01-02, categorized as Shopping.
+[PASS] How many transactions do I have? (expected 3)
+   -> You have 3 transactions in your recent history.
+Chatbot accuracy: 2/3
+Note: substring checks are a floor. Next step: LLM-as-judge for semantic correctness.
 
 Eval complete. All calls traced in Langfuse if configured.
