@@ -2,7 +2,7 @@
 
 ## Zero-shot LLM (Groq Llama-3-70b)
 - **Accuracy**: N/A (Baseline reference)
-- **Macro-F1**: 0.8229
+- **Macro-F1**: 0.8431
 - **Avg Latency per tx**: ~500ms - 1500ms (Network bound)
 - **Approx Cost**: ~$0.05 per 1k transactions
 
@@ -17,11 +17,11 @@
 ## Cashflow Forecasting (Prophet)
 - **MAE**: $283.23
 - **SMAPE**: 196.0%
-- **MASE**: 0.64 (Prophet is BETTER than seasonal naive)
+- **MASE**: 0.64 (Prophet is BETTER than seasonal naive which got MAE: $414.58)
 
 --- Evaluating Categorization ---
 ML Model Macro-F1: 0.8439
-LLM Model Macro-F1: 0.8229
+LLM Model Macro-F1: 0.8431
 
 --- Evaluating Forecasting ---
 Prophet MAE: $283.23
@@ -29,15 +29,15 @@ Prophet SMAPE: 196.0%
 Prophet MASE: 0.64
 
 --- Evaluating Anomaly Flagging ---
-Anomaly Precision: 0.00
-Anomaly Recall: 0.00
-Anomaly F1: 0.00
-*(Note: tested on synthetic labeled set n=40)*
+Anomaly Precision: 1.00
+Anomaly Recall: 1.00
+Anomaly F1: 1.00
+*(Note: tested on synthetic labeled set n=48, positives=8)*
 
 --- Evaluating Chatbot QA ---
-Chatbot Accuracy (rule-based): 2/3 (66.7%)
+Chatbot Accuracy: 3/3 (100.0%)
 [PASS] How much did I spend at Starbucks in total?
-[FAIL] What was my single largest expense?
+[PASS] What was my single largest expense?
 [PASS] How many transactions do I have?
 
 Eval complete. All calls traced in Langfuse if configured.

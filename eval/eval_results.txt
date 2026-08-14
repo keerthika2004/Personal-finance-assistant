@@ -40,29 +40,29 @@ labels: ['Dining', 'Entertainment', 'Groceries', 'Healthcare', 'Housing', 'Incom
 
 == Categorization summary ==
 Local ML Macro-F1:  0.8439
-LLM Macro-F1: 0.8229
+LLM Macro-F1: 0.8431
 
 --- Evaluating Forecasting ---
 Prophet MAE: $ 283.23 SMAPE: 196.0% MASE: 0.64
-Naive MAE: $89.89
+Naive MAE: $414.58
 => Prophet is BETTER than seasonal_naive (MASE 0.64)
 Note: MAPE dropped - it's meaningless here (series crosses zero). SMAPE/MASE are honest.
 
 --- Evaluating Anomaly Flagging (synthetic labeled set) ---
-n=40 positives(true)=40
-Precision: 0.00   Recall: 0.00   F1: 0.00
-[[ 0  0]
- [40  0]]
+n=48 positives(true)=8
+Precision: 1.00   Recall: 1.00   F1: 1.00
+[[40  0]
+ [ 0  8]]
 Note: SYNTHETIC data. Replace with hand-labeled real transactions for a defensible number.
 
 --- Evaluating Chatbot QA ---
 [PASS] How much did I spend at Starbucks in total? (expected 10.00)
-   -> You spent a total of $10.00 at Starbucks. This is calculated by adding the two Starbucks transactions: $5.50 + $4.50.
-[FAIL] What was my single largest expense? (expected 150.00)
+   -> You spent a total of $10.00 at Starbucks. This is calculated by adding the two transactions: $5.50 + $4.50.
+[PASS] What was my single largest expense? (expected 150.00)
    -> Your single largest expense was $150.0 at Target on 2024-01-02, categorized as Shopping.
 [PASS] How many transactions do I have? (expected 3)
-   -> You have 3 transactions in your recent history.
-Chatbot accuracy: 2/3
+   -> You have 3 transactions.
+Chatbot accuracy: 3/3
 Note: substring checks are a floor. Next step: LLM-as-judge for semantic correctness.
 
 Eval complete. All calls traced in Langfuse if configured.

@@ -128,7 +128,10 @@ def evaluate_forecasting():
         model_mase = mase(actual,pred, train["y"].values, m=7)
         
         #seasonal-naive baseline: "next week looks like last week"
-        naive_pred = train["y"].values[-30:]
+        # naive_pred = train["y"].values[-30:]
+        # naive_mae = mean_absolute_error(actual, naive_pred)
+        n = len(df)
+        naive_pred = df["y"].values[n-37:n-7] # the 7-days prior values aligned to the test window
         naive_mae = mean_absolute_error(actual, naive_pred)
         
         print(f"Prophet MAE: ${model_mae: .2f} SMAPE: {model_smape:.1f}% MASE: {model_mase:.2f}")
@@ -143,12 +146,17 @@ def evaluate_forecasting():
 def make_labeled_anomaly_set(seed=42):
     rng = np.random.default_rng(seed)
     txs, labels = [], []
-    #Normal transactions around per-category medians
+    #Normal transactions around per-category medians -> label 0
     medians = {"Dining": 400, "Groceries": 800, "Transportation": 200, "Shopping": 1500}
     for cat, med in medians.items():
         for _ in range(10):
             txs.append({"amount": -round(float(rng.normal(med, med*0.15)), 2),
-            "category": cat, "is_duplicated": False, "is_suspicious": False, "status": "PENDING"})
+            "category": cat, "is_duplicate": False, "is_suspicious": False, "status": "PENDING"})
+            labels.append(0)
+    # Injected anomalies: large spikes (>2x median AND >2000) -> label 1
+    for cat,med in medians.items():
+        for _ in range(2):
+            txs.append({"amount": -round(float(med * rng.uniform(6,12)), 2), "category": cat, "is_duplicate": False, "is_suspicious": False, "status": "PENDING"})
             labels.append(1)
     return txs, labels
 
@@ -164,6 +172,18 @@ def evaluate_anomaly_flagging():
     f"F1: {f1_score(y_true, y_pred, zero_division=0):.2f}")
     print(confusion_matrix(y_true, y_pred))
     print("Note: SYNTHETIC data. Replace with hand-labeled real transactions for a defensible number.")
+
+import re
+def _numeric_hit(expected, ans):
+    """True if expected's numeric value appears in ans, ignoring $, commas, trailing zeroes."""
+    target = float(expected)
+    for token in re.findall(r"-?\d[\d,]*\.?\d*", ans):
+        try:
+            if abs(float(token.replace(",","")) - target) < 0.01:
+                return True
+        except ValueError:
+            continue
+    return False 
 
 def evaluate_chatbot():
     print("\n--- Evaluating Chatbot QA ---")
@@ -183,7 +203,7 @@ def evaluate_chatbot():
         try:
             res = graph.invoke({"user_query": q, "transaction_context": txs, "goals_context":[], "response": ""})
             ans = res.get("response","")
-            hit = expected in ans.replace(",","")
+            hit = _numeric_hit(expected, ans)
             correct += hit
             print(f"[{'PASS' if hit else 'FAIL'}] {q} (expected {expected})\n   -> {ans[:120]}")
         except Exception as e:
