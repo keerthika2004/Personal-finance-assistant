@@ -36,6 +36,8 @@ jobs:
           PYTHONPATH=. pytest backend/tests
 
       - name: Run Evaluation Benchmarking Harness
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           PYTHONPATH=. python eval/run_evals.py
 
