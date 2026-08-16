@@ -21,7 +21,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 
 from backend.app.services.anomaly_detector import HybridAnomalyDetector
-from backend.app.agents.chat_graph import build_chat_graph
 from scripts.forecasting_backtest import generate_mock_cashflow_data
 
 CATEGORIES = [
@@ -186,13 +185,24 @@ def _numeric_hit(expected, ans):
     return False 
 
 def evaluate_chatbot():
-    print("\n--- Evaluating Chatbot QA ---")
-    graph = build_chat_graph()
+    print("\n--- Evaluating Chatbot QA (tool-calling agent) ---")
+    from datetime import date
+    from langchain_core.messages import HumanMessage
+    from backend.app.agents.chat_graph import build_chat_agent
+    from backend.app.agents.finance_tools import build_finance_tools
+
     txs = [
         {"date": "2024-01-01", "normalized_merchant": "Starbucks", "amount": -5.50, "category": "Dining"},
         {"date": "2024-01-01", "normalized_merchant": "Starbucks", "amount": -4.50, "category": "Dining"},
         {"date": "2024-01-02", "normalized_merchant": "Target", "amount": -150.00, "category": "Shopping"}
     ]
+
+    agent = build_chat_agent(
+        build_finance_tools(txs, []),
+        f"You are a precise finance assistant. Today is {date.today().isoformat()}. "
+        f"Always call a tool for exact numbers; never invent numbers.",
+    )
+
     cases = [
         ("How much did I spend at Starbucks in total?", "10.00"),
         ("What was my single largest expense?", "150.00"),
@@ -201,15 +211,14 @@ def evaluate_chatbot():
     correct = 0
     for q, expected in cases:
         try:
-            res = graph.invoke({"user_query": q, "transaction_context": txs, "goals_context":[], "response": ""})
-            ans = res.get("response","")
+            res = agent.invoke({"messages": [HumanMessage(content=q)]})
+            ans = res["messages"][-1].content
             hit = _numeric_hit(expected, ans)
             correct += hit
-            print(f"[{'PASS' if hit else 'FAIL'}] {q} (expected {expected})\n   -> {ans[:120]}")
+            print(f"[{'PASS' if hit else 'FAIL'}] {q} (expected {expected})\n   -> {ans[:160]}")
         except Exception as e:
             print(f"[{'ERROR'}] {q} {e}")
     print(f"Chatbot accuracy: {correct}/{len(cases)}")
-    print("Note: substring checks are a floor. Next step: LLM-as-judge for semantic correctness.")
 
 if __name__ == "__main__":
     evaluate_categorization()

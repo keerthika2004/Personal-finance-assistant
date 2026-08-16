@@ -1,12 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from langchain_core.messages import HumanMessage
 
 from backend.app.db.database import get_db
 from backend.app.db.models import Transaction, UserGoal
 from backend.app.api.auth import get_current_user_id
-from backend.app.agents.chat_graph import build_chat_graph
+from backend.app.agents.chat_graph import build_chat_agent
+from backend.app.agents.finance_tools import build_finance_tools
+from backend.app.services.pii_redactor import PIIRedactor
 
 router = APIRouter(prefix="/api/v1/chat", tags=["Financial Chat Agent"])
 
@@ -14,6 +18,14 @@ router = APIRouter(prefix="/api/v1/chat", tags=["Financial Chat Agent"])
 class ChatQueryRequest(BaseModel):
     message: str
 
+SYSTEM_TEMPLATE = (
+    "You are a precise AI personal finance assistant. Today's date is {today}.\n"
+    "You have tools that query the user's ACTUAL transaction data."
+    "ALWAYS call a tool to get exact figures - NEVER estimate or invent numbers."
+    "If a tool returns no data, tell the user you don't have that information."
+    "Only answer questions about the user's personal finances; politely decline anything else."
+    "Amounts are in Indian Rupees (Rs). Be concise."
+)
 
 @router.post("")
 async def query_financial_agent(
@@ -21,29 +33,19 @@ async def query_financial_agent(
     db: AsyncSession = Depends(get_db),
     user_id: str = Depends(get_current_user_id)
 ):
-    """Processes user natural language financial queries using the Groq-powered Chat Agent."""
     if not request.message or not request.message.strip():
         raise HTTPException(status_code=400, detail="Query message cannot be empty.")
 
-    # Fetch recent transactions for current user context
+    # Load all of the users transactions
     tx_query = await db.execute(
-        select(Transaction).where(Transaction.user_id == user_id).order_by(Transaction.date.desc()).limit(100)
+        select(Transaction).where(Transaction.user_id == user_id).order_by(Transaction.date.desc())
     )
     txs = tx_query.scalars().all()
-
-    # Fetch user goals for current user context
-    goal_query = await db.execute(
-        select(UserGoal).where(UserGoal.user_id == user_id)
-    )
-    goals = goal_query.scalars().all()
+    goals = (await db.execute(select(UserGoal).where(UserGoal.user_id == user_id))).scalars().all()
 
     tx_dicts = [
         {
-            "date": t.date.strftime("%Y-%m-%d"),
-            "amount": t.amount,
-            "raw_description": t.raw_description,
-            "normalized_merchant": t.normalized_merchant,
-            "category": t.category
+            "date": t.date, "amount": t.amount, "category": t.category, "normalized_merchant": t.normalized_merchant or t.raw_description, "raw_description": t.raw_description
         }
         for t in txs
     ]
@@ -57,18 +59,12 @@ async def query_financial_agent(
         for g in goals
     ]
 
-    # Run LangGraph Chat Agent
-    chat_graph = build_chat_graph()
-    initial_state = {
-        "user_query": request.message,
-        "transaction_context": tx_dicts,
-        "goals_context": goal_dicts,
-        "response": ""
-    }
+    tools = build_finance_tools(tx_dicts, goal_dicts)
+    agent = build_chat_agent(tools, SYSTEM_TEMPLATE.format(today=date.today().isoformat()))
 
-    final_state = chat_graph.invoke(initial_state)
-
-    return {
-        "user_query": request.message,
-        "response": final_state.get("response", "No response generated.")
-    }
+    safe_query = PIIRedactor.redact(request.message)
+    result = agent.invoke(
+        {"messages": [HumanMessage(content=safe_query)]}
+    )
+    return {"user_query": request.message, "response": result["messages"][-1].content}
+    

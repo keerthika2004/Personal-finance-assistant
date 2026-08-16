@@ -45,7 +45,7 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
     
     # Always initialize LLM chain as fallback
     try:
-        llm = LLMFactory.get_llm(temperature=0.0)
+        llm = LLMFactory.get_llm(temperature=0.0, fast=True)
         prompt = ChatPromptTemplate.from_messages([
             ("system", "You are a financial transaction normalizer. For the given raw transaction description, return the clean Merchant Name and assign one of the following Categories: [Groceries, Dining, Transportation, Utilities, Shopping, Entertainment, Income, Transfer, Healthcare, Subscriptions, Housing, Uncategorized]. Format response as: Merchant | Category"),
             ("user", "{description}")

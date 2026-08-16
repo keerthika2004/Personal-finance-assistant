@@ -16,7 +16,7 @@ langchain>=0.1.13
 langchain-core>=0.1.33
 langchain-community>=0.0.29
 langchain-groq>=0.1.1
-langgraph>=0.0.30
+langgraph>=0.2.0
 
 # File, OCR & PDF Parsing
 pdfplumber>=0.10.4

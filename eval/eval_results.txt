@@ -1,4 +1,3 @@
-
 --- Evaluating Categorization (held-out test set) ---
 TF-IDF+LogReg Accuracy: 0.8571
 Macro-F1: 0.8439
@@ -55,14 +54,10 @@ Precision: 1.00   Recall: 1.00   F1: 1.00
  [ 0  8]]
 Note: SYNTHETIC data. Replace with hand-labeled real transactions for a defensible number.
 
---- Evaluating Chatbot QA ---
-[PASS] How much did I spend at Starbucks in total? (expected 10.00)
-   -> You spent a total of $10.00 at Starbucks. This is calculated by adding the two transactions: $5.50 + $4.50.
-[PASS] What was my single largest expense? (expected 150.00)
-   -> Your single largest expense was $150.0 at Target on 2024-01-02, categorized as Shopping.
-[PASS] How many transactions do I have? (expected 3)
-   -> You have 3 transactions.
-Chatbot accuracy: 3/3
-Note: substring checks are a floor. Next step: LLM-as-judge for semantic correctness.
+--- Evaluating Chatbot QA (tool-calling agent) ---
+[ERROR] How much did I spend at Starbucks in total? Model timed out/hung due to infinite tool-calling loop.
+[ERROR] What was my single largest expense? Model timed out/hung due to infinite tool-calling loop.
+[ERROR] How many transactions do I have? Model timed out/hung due to infinite tool-calling loop.
+Chatbot accuracy: 0/3
 
 Eval complete. All calls traced in Langfuse if configured.

@@ -13,12 +13,15 @@ load_dotenv()
 
 
 class LLMFactory:
-    """Factory for initializing Groq LLM instances with fallback options."""
+    """Factory for Groq LLM instances.
+    Two tiers so we don't burn 70B rate limits on easy work:
+    - fast = True -> small model (routing, classification, tool-calling)
+    - fast = False -> larger model (reasoning / insight generation)
+    """
 
     @staticmethod
-    def get_llm(temperature: float = 0.1, model_name: str = None) -> BaseChatModel:
+    def get_llm(temperature: float = 0.1, model_name: str = None, fast: bool = False) -> BaseChatModel:
         groq_api_key = os.getenv("GROQ_API_KEY", "")
-        model = model_name or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
         
         if not groq_api_key or groq_api_key == "your_groq_api_key_here":
             raise ValueError(
@@ -26,13 +29,20 @@ class LLMFactory:
                 "Please configure a valid Groq API Key."
             )
 
+        if model_name:
+            model = model_name
+        elif fast:
+            model = os.getenv("GROQ_MODEL_FAST", "llama-3.1-8b-instant")
+        else:
+            model = os.getenv("GROQ_MODEL_SLOW", "llama-3.3-70b-versatile")
+
+
         # Basic Langfuse Observability Integration
         callbacks = []
         if os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
             try:
-                from langfuse.callback import CallbackHandler
-                langfuse_handler = CallbackHandler()
-                callbacks.append(langfuse_handler)
+                from langfuse.langchain import CallbackHandler
+                callbacks.append(CallbackHandler())
             except ImportError:
                 pass
 
@@ -40,5 +50,6 @@ class LLMFactory:
             groq_api_key=groq_api_key,
             model_name=model,
             temperature=temperature,
+            max_retries=6, 
             callbacks=callbacks if callbacks else None
         )
