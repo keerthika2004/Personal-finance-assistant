@@ -32,9 +32,9 @@ class LLMFactory:
         if model_name:
             model = model_name
         elif fast:
-            model = os.getenv("GROQ_MODEL_FAST", "llama-3.1-8b-instant")
+            model = os.getenv("GROQ_FAST_MODEL", "llama-3.1-8b-instant")
         else:
-            model = os.getenv("GROQ_MODEL_SLOW", "llama-3.3-70b-versatile")
+            model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 
         # Basic Langfuse Observability Integration

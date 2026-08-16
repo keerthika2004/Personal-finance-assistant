@@ -1,3 +1,4 @@
+from langgraph.errors import GraphRecursionError
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from datetime import date
@@ -63,8 +64,14 @@ async def query_financial_agent(
     agent = build_chat_agent(tools, SYSTEM_TEMPLATE.format(today=date.today().isoformat()))
 
     safe_query = PIIRedactor.redact(request.message)
-    result = agent.invoke(
-        {"messages": [HumanMessage(content=safe_query)]}
-    )
-    return {"user_query": request.message, "response": result["messages"][-1].content}
-    
+    try:
+        result = agent.invoke(
+            {"messages": [HumanMessage(content=safe_query)]},config = {"recursion_limit": 8},
+        )
+        response = result["messages"][-1].content or "I couldn't find an answer to that."
+    except GraphRecursionError:
+        response = "I had trouble answering that reliably. Could you rephrase or be more specific?"
+
+    return {"user_query": request.message, "response": response}
+
+

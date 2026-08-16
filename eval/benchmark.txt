@@ -21,7 +21,7 @@
 
 --- Evaluating Categorization ---
 ML Model Macro-F1: 0.8439
-LLM Model Macro-F1: 0.8431
+LLM Model Macro-F1: 0.8229
 
 --- Evaluating Forecasting ---
 Prophet MAE: $283.23
@@ -35,7 +35,7 @@ Anomaly F1: 1.00
 *(Note: tested on synthetic labeled set n=48, positives=8)*
 
 --- Evaluating Chatbot QA ---
-Chatbot Accuracy: 0/3 (0.0%)
-*Note: The Chatbot evaluation hung indefinitely when using the `llama-3.1-8b-instant` model (via `fast=True`). The model struggled with tool calling and entered an infinite loop. The previously tested `llama-3.3-70b-versatile` model failed due to reaching the daily token rate limit on Groq's API (429 Rate Limit Exceeded: 100,000 TPD).*
+Chatbot Accuracy: 3/3 (100.0%)
+*Note: Evaluated using `llama-3.3-70b-versatile`. The model successfully executed tool calls across all queries after adjusting the `top_transactions` tool parameter schema to accept string integers.*
 
 Eval complete. All calls traced in Langfuse if configured.

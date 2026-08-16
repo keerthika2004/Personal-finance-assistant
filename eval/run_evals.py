@@ -211,7 +211,10 @@ def evaluate_chatbot():
     correct = 0
     for q, expected in cases:
         try:
-            res = agent.invoke({"messages": [HumanMessage(content=q)]})
+            res = agent.invoke(
+                {"messages": [HumanMessage(content=q)]},
+                config={"recursion_limit": 8}
+            )
             ans = res["messages"][-1].content
             hit = _numeric_hit(expected, ans)
             correct += hit

@@ -59,13 +59,17 @@ def build_finance_tools(transactions: List[Dict[str, Any]], goals: List[Dict[str
         return f"{len(_filter(category, merchant, start_date, end_date))} transaction(s) match"
         
     @tool
-    def top_transactions(n: int = 5, kind: str = "expense", category: Optional[str] = None) -> str:
+    def top_transactions(n: str = "5", kind: str = "expense", category: Optional[str] = None) -> str:
         """Largest transactions. kind='expense' (default) or 'income'. n = how many. category optional. """
+        try:
+            n_int = int(n)
+        except (ValueError, TypeError):
+            n_int = 5
         sub = _filter(category, None, None, None)
         if sub.empty:
             return "No matching transactions found."
         sub = sub[sub["amount"]<0] if kind == "expense" else sub[sub["amount"]>0]
-        sub = sub.reindex(sub["amount"].abs().sort_values(ascending=False).index).head(max(1,n))
+        sub = sub.reindex(sub["amount"].abs().sort_values(ascending=False).index).head(max(1,n_int))
         return "\n".join(
             f"- {r['date'].date() if pd.notna(r['date']) else 'N/A'}: "
             f"{PIIRedactor.redact(str(r['normalized_merchant']))}"
