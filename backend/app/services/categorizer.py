@@ -6,6 +6,23 @@ from typing import Dict
 
 logger = logging.getLogger(__name__)
 
+#The one canonical taxonomy for the whole app.
+CATEGORIES = [
+    "Groceries", "Dining", "Transportation", "Utilities", "Shopping", "Entertainment", "Income", "Transfer", "Healthcare", "Subscriptions", "Housing", "Uncategorized",
+]
+
+#Map legacy / near-miss labels onto the canonical set.
+_CATEGORY_ALIASES = {"online shopping": "Shopping"}
+
+def normalize_category(cat: str) -> str:
+    """Force any category string into the canonical taxonomy. Unknown -> 'Uncategorized'."""
+    if not cat:
+        return "Uncategorized"
+    c = cat.strip()
+    if c in CATEGORIES:
+        return c
+    return _CATEGORY_ALIASES.get(c.lower(), "Uncategorized")
+
 # Intelligent Keyword Heuristic Mapping for instant categorization
 KEYWORD_MAPPINGS: Dict[str, str] = {
     # Dining & Food
@@ -39,13 +56,13 @@ KEYWORD_MAPPINGS: Dict[str, str] = {
 
     # Shopping
     "shopping": "Shopping",
-    "nykaa": "Online Shopping",
-    "amazon": "Online Shopping",
-    "flipkart": "Online Shopping",
-    "myntra": "Online Shopping",
+    "nykaa": "Shopping",
+    "amazon": "Shopping",
+    "flipkart": "Shopping",
+    "myntra": "Shopping",
     "zara": "Shopping",
     "h&m": "Shopping",
-    "ajio": "Online Shopping",
+    "ajio": "Shopping",
     "clothes": "Shopping",
 
     # Income & Earnings
