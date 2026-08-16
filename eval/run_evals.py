@@ -186,9 +186,6 @@ def _numeric_hit(expected, ans):
 
 def evaluate_chatbot():
     print("\n--- Evaluating Chatbot QA (tool-calling agent) ---")
-    if not os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") == "your_groq_api_key_here":
-        print("Chatbot QA eval skipped (no GROQ_API_KEY)")
-        return
     from datetime import date
     from langchain_core.messages import HumanMessage
     from backend.app.agents.chat_graph import build_chat_agent
