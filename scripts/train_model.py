@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score
 
@@ -20,10 +20,13 @@ def train():
     
     print("Training TF-IDF + Logistic Regression...")
     pipeline = Pipeline([
-        ('tfidf', TfidfVectorizer(ngram_range=(1, 2))),
+        ('features', FeatureUnion([
+            ('word', TfidfVectorizer(analyzer='word', ngram_range=(1,2))),('char', TfidfVectorizer(analyzer='char_wb', ngram_range=(3,5))),
+        ])),
         ('clf', LogisticRegression(class_weight='balanced', max_iter=1000))
     ])
     
+
     start = time.time()
     pipeline.fit(X_train, y_train)
     train_time = time.time() - start

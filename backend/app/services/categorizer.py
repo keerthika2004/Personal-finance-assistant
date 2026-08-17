@@ -150,19 +150,11 @@ class MLCategorizer:
             return "Uncategorized"
 
         try:
-            tfidf = model.named_steps['tfidf']
-            clf = model.named_steps['clf']
-            
-            vec = tfidf.transform([description])
-            if vec.nnz == 0:
-                # Completely out of vocabulary
+            #Full pipeline: word + char n-gram features -> classifier
+            probs = model.predict_proba([description])[0]
+            if max(probs)<0.35:
                 return "Uncategorized"
-                
-            probs = clf.predict_proba(vec)[0]
-            if max(probs) < 0.35: # Low confidence threshold
-                return "Uncategorized"
-                
-            return clf.predict(vec)[0]
+            return model.predict([description])[0]
         except Exception as e:
             logger.error(f"Prediction error: {e}")
             return "Uncategorized"

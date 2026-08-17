@@ -17,7 +17,7 @@ import numpy as np
 from sklearn.metrics import (f1_score, accuracy_score, classification_report, confusion_matrix, precision_score, recall_score, mean_absolute_error,)
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.model_selection import train_test_split
 
 from backend.app.services.anomaly_detector import HybridAnomalyDetector
@@ -62,8 +62,10 @@ def evaluate_categorization():
         
     
     model = Pipeline([
-    ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
-("clf", LogisticRegression(class_weight="balanced", max_iter=1000)),
+        ('features', FeatureUnion([
+            ('word', TfidfVectorizer(analyzer='word', ngram_range=(1,2))),('char', TfidfVectorizer(analyzer='char_wb', ngram_range=(3,5))),
+        ])),
+        ('clf', LogisticRegression(class_weight='balanced', max_iter=1000))
     ])
     model.fit(X_train, y_train) # ‹-- trained ONLY on the train split
     y_pred = model.predict(X_test)
@@ -78,7 +80,7 @@ def evaluate_categorization():
     print("Confusion matrix (rows-true, cols-pred):")
     print("labels:", labels)
     print(cm)
-    
+
     llm_f1 = evaluate_11m_categorization(list(X_test), list(y_test))
     print ("\n== Categorization summary ==")
     print(f"Local ML Macro-F1: {f1: .4f}")
@@ -180,7 +182,7 @@ def evaluate_anomaly_flagging():
     f"Recall: {recall_score(y_true, y_pred, zero_division=0):.2f}   "
     f"F1: {f1_score(y_true, y_pred, zero_division=0):.2f}")
     print(confusion_matrix(y_true, y_pred))
-    print("Note: SYNTHETIC data. Replace with hand-labeled real transactions for a defensible number.")
+    
 
 import re
 def _numeric_hit(expected, ans):
