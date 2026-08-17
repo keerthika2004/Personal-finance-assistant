@@ -1,11 +1,13 @@
 import csv
+import math
 import random
 from pathlib import Path
 from collections import Counter
 
 SEED = 42
-PER_CATEGORY = 50 #rows generated per category 
-TEST_FRACTION = 0.20 #20% of each category is held out for test.csv
+TRAIN_PER_CATEGORY = 40 #rows generated per category 
+TEST_PER_CATEGORY = 10 #rows generated per category 
+MERCHANT_TEST_FRACTION = 0.30 #30% of each category is held out for test.csv
 random.seed(SEED)
 
 CITIES = ["BLR", "MUM", "DEL", "HYD", "CHN", "PUN", "KOL", "GGN", "NOIDA", "AMD"]
@@ -40,6 +42,17 @@ def render(category, merchant):
     template = random.choice(TEMPLATE_GROUPS.get(category, EXPENSE_TEMPLATES))
     return template.format(m=merchant, ref=ref(), city=random.choice(CITIES), month=random.choice(MONTHS))
 
+def gen(rows_needed, category, merchant_pool, global_seen):
+    rows, attempts = [], 0
+    while len(rows)<rows_needed and attempts<rows_needed*60:
+        attempts += 1
+        desc = render(category, random.choice(merchant_pool))
+        if desc.lower() in global_seen:
+            continue
+        global_seen.add(desc.lower())
+        rows.append((desc, category))
+    return rows
+
 def write_csv(path, rows):
     Path(path).parent.mkdir(parents=True, exist_ok=True)    
 
@@ -48,29 +61,34 @@ def write_csv(path, rows):
         w.writerow(["description","category"])
         w.writerows(rows)
 
-train_rows, test_rows, global_seen = [], [], set()
+train_rows, test_rows, global_seen, split = [], [], set(), {}
 for category, merchants in MERCHANTS.items():
-    rows, attempts = [], 0
-    while len(rows) < PER_CATEGORY and attempts < PER_CATEGORY * 40:
-        attempts += 1
-        desc = render(category, random.choice(merchants))
-        if desc.lower() in global_seen:
-            continue
-        global_seen.add(desc.lower())
-        rows.append((desc,category))
-    random.shuffle(rows)
-    n_test = int(len(rows)*TEST_FRACTION)
-    test_rows.extend(rows[:n_test])
-    train_rows.extend(rows[n_test:])
-    
+    pool = merchants[:]
+    random.shuffle(pool)
+    n_test_m = max(2, math.ceil(len(pool) * MERCHANT_TEST_FRACTION))
+    test_merchants = pool[:n_test_m]
+    train_merchants = pool[n_test_m:]
+    split[category] = (train_merchants, test_merchants)
+
+    train_rows += gen(TRAIN_PER_CATEGORY, category, train_merchants, global_seen)
+    test_rows += gen(TEST_PER_CATEGORY, category, test_merchants, global_seen)
+
 random.shuffle(train_rows)
 random.shuffle(test_rows)
 write_csv("data/training.csv", train_rows)
 write_csv("data/test.csv",test_rows)
 
-overlap = {d.lower() for d, _ in train_rows} & {d.lower() for d, _ in test_rows}
+
+train_descs = {d.lower() for d, _ in train_rows} 
+test_descs = {d.lower() for d, _ in test_rows}
+train_merch = {m.lower() for tr, _ in split.values() for m in tr}
+test_merch = {m.lower() for _, te in split.values() for m in te}
+
 print(f"training.csv {len(train_rows)} rows")
 print(f"test.csv: {len(test_rows)} rows")
-print(f"Overlap between them (MUST be 0); {len(overlap)}")
-print("Test distribution: ", dict(Counter(c for _, c in test_rows)))
+print(f"Row overlap (MUST be 0): {len(train_descs & test_descs)}")
+print(f"Merchant overlap (MUST be 0): {len(train_merch & test_merch)}")
+print("\nHeld-out (test-only) merchants per category:")
+for category, (_, te) in split.items():
+    print(f" {category}: {te}")
     

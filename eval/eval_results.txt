@@ -1,47 +1,47 @@
 
 --- Evaluating Categorization (held-out test set) ---
 Held-out test set: data/test.csv (n=120)
-TF-IDF+LogReg Accuracy: 0.9833
-Macro-F1: 0.9833
+TF-IDF+LogReg Accuracy: 0.3667
+Macro-F1: 0.3624
 
 Per-class report:
                 precision    recall  f1-score   support
 
-        Dining       1.00      0.90      0.95        10
- Entertainment       0.91      1.00      0.95        10
-     Groceries       1.00      1.00      1.00        10
-    Healthcare       1.00      1.00      1.00        10
-       Housing       1.00      1.00      1.00        10
+        Dining       0.25      0.40      0.31        10
+ Entertainment       0.60      0.30      0.40        10
+     Groceries       0.00      0.00      0.00        10
+    Healthcare       1.00      0.10      0.18        10
+       Housing       0.24      0.70      0.36        10
         Income       1.00      1.00      1.00        10
-      Shopping       1.00      0.90      0.95        10
- Subscriptions       1.00      1.00      1.00        10
-      Transfer       1.00      1.00      1.00        10
-Transportation       0.91      1.00      0.95        10
- Uncategorized       1.00      1.00      1.00        10
-     Utilities       1.00      1.00      1.00        10
+      Shopping       0.06      0.10      0.07        10
+ Subscriptions       1.00      0.10      0.18        10
+      Transfer       1.00      0.70      0.82        10
+Transportation       0.15      0.30      0.20        10
+ Uncategorized       1.00      0.70      0.82        10
+     Utilities       0.00      0.00      0.00        10
 
-      accuracy                           0.98       120
-     macro avg       0.98      0.98      0.98       120
-  weighted avg       0.98      0.98      0.98       120
+      accuracy                           0.37       120
+     macro avg       0.52      0.37      0.36       120
+  weighted avg       0.52      0.37      0.36       120
 
 Confusion matrix (rows-true, cols-pred):
 labels: ['Dining', 'Entertainment', 'Groceries', 'Healthcare', 'Housing', 'Income', 'Shopping', 'Subscriptions', 'Transfer', 'Transportation', 'Uncategorized', 'Utilities']
-[[ 9  1  0  0  0  0  0  0  0  0  0  0]
- [ 0 10  0  0  0  0  0  0  0  0  0  0]
- [ 0  0 10  0  0  0  0  0  0  0  0  0]
- [ 0  0  0 10  0  0  0  0  0  0  0  0]
- [ 0  0  0  0 10  0  0  0  0  0  0  0]
+[[ 4  0  0  0  2  0  3  0  0  1  0  0]
+ [ 2  3  0  0  3  0  1  0  0  1  0  0]
+ [ 1  1  0  0  5  0  1  0  0  2  0  0]
+ [ 1  0  3  1  2  0  2  0  0  1  0  0]
+ [ 0  0  0  0  7  0  0  0  0  3  0  0]
  [ 0  0  0  0  0 10  0  0  0  0  0  0]
- [ 0  0  0  0  0  0  9  0  0  1  0  0]
- [ 0  0  0  0  0  0  0 10  0  0  0  0]
- [ 0  0  0  0  0  0  0  0 10  0  0  0]
- [ 0  0  0  0  0  0  0  0  0 10  0  0]
- [ 0  0  0  0  0  0  0  0  0  0 10  0]
- [ 0  0  0  0  0  0  0  0  0  0  0 10]]
+ [ 1  0  0  0  4  0  1  0  0  2  0  2]
+ [ 1  0  0  0  2  0  3  1  0  3  0  0]
+ [ 3  0  0  0  0  0  0  0  7  0  0  0]
+ [ 1  0  1  0  1  0  4  0  0  3  0  0]
+ [ 0  0  0  0  0  0  0  0  0  3  7  0]
+ [ 2  1  0  0  3  0  3  0  0  1  0  0]]
 
 == Categorization summary ==
-Local ML Macro-F1:  0.9833
-LLM Macro-F1: 0.8992
+Local ML Macro-F1:  0.3624
+LLM Macro-F1: 0.9741
 
 --- Evaluating Forecasting ---
 Prophet MAE: $ 283.23 SMAPE: 196.0% MASE: 0.64
@@ -62,7 +62,7 @@ Note: SYNTHETIC data. Replace with hand-labeled real transactions for a defensib
 [PASS] What was my single largest expense? (expected 150.00)
    -> Your single largest expense was a Rs 150.00 purchase at Target on 2024‑01‑02, categorized as Shopping.
 [PASS] How many transactions do I have? (expected 3)
-   -> You have a total of **3 transactions**.
+   -> You have 3 transactions in total.
 Chatbot accuracy: 3/3
 
 Eval complete. All calls traced in Langfuse if configured.
