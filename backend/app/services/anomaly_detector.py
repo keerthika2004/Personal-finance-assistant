@@ -1,7 +1,9 @@
 import numpy as np
 from typing import List, Dict, Any
 from sklearn.ensemble import IsolationForest
+import logging
 
+logger = logging.getLogger(__name__)
 
 class HybridAnomalyDetector:
     """Hybrid Machine Learning Anomaly Detection Service for Financial Transactions.
@@ -73,7 +75,7 @@ class HybridAnomalyDetector:
                 if max_s > min_s:
                     iso_scores = ((max_s - raw_scores) / (max_s - min_s)) * 100.0
             except Exception as e:
-                print("Isolation Forest fit warning:", e)
+                logger.warning("Isolation Forest fit warning: %s", e)
 
         # Slice scores back to incoming batch
         batch_offset = len(historical_txs or [])

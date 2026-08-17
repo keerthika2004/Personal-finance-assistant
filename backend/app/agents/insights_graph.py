@@ -1,8 +1,10 @@
+import logging
 from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
 from backend.app.services.llm_factory import LLMFactory
 
+logger = logging.getLogger(__name__)
 
 class InsightsState(TypedDict):
     transactions: List[Dict[str, Any]]
@@ -78,7 +80,7 @@ def generate_llm_insights_node(state: InsightsState) -> InsightsState:
             state["goal_coaching"] = {}
             
     except Exception as e:
-        print(f"Insights Generation Error: {e}")
+        logger.error("Insights Generation Error: %s", e)
         state["insights_report"] = (
             f"Monthly Summary: Total Income: ₹{state['total_income']}, "
             f"Total Expenses: ₹{state['total_expenses']}, "
@@ -100,3 +102,12 @@ def build_insights_graph():
     workflow.add_edge("generate_insights", END)
 
     return workflow.compile()
+
+_INSIGHTS_GRAPH = None
+
+def get_insights_graph():
+    """Compile once and reuse."""
+    global _INSIGHTS_GRAPH
+    if _INSIGHTS_GRAPH is None:
+        _INSIGHTS_GRAPH = build_insights_graph()
+    return _INSIGHTS_GRAPH

@@ -10,7 +10,7 @@ from sqlalchemy.future import select
 from backend.app.db.database import get_db
 from backend.app.db.models import Statement, Transaction, TransactionStatus
 from backend.app.api.auth import get_current_user_id
-from backend.app.agents.reconciliation_graph import build_reconciliation_graph
+from backend.app.agents.reconciliation_graph import get_reconciliation_graph
 
 router = APIRouter(prefix="/api/v1/bank-sync", tags=["Bank Sync"])
 
@@ -185,7 +185,7 @@ async def trigger_bank_sync(
         })
 
     # Run LangGraph Reconciliation Graph
-    reconcile_graph = build_reconciliation_graph()
+    reconcile_graph = get_reconciliation_graph()
     initial_state = {
         "statement_id": stmt.id,
         "raw_transactions": raw_txs,

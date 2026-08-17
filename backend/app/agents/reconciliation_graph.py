@@ -3,7 +3,6 @@ from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import ChatPromptTemplate
 from backend.app.services.llm_factory import LLMFactory
-from backend.app.services.categorizer import MLCategorizer
 from backend.app.services.pii_redactor import PIIRedactor
 from backend.app.services.anomaly_detector import HybridAnomalyDetector
 import os
@@ -76,7 +75,7 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
         ])
         chain = prompt | llm.with_structured_output(NormalizedTransactions)
     except Exception as e:
-        print(f"Failed to initialize LLM chain: %s", e)
+        logger.warning("Failed to initialize LLM chain: %s", e)
 
     for item in raw_txs:
         desc = PIIRedactor.redact(item.get("raw_description", ""))
@@ -209,3 +208,14 @@ def build_reconciliation_graph():
     workflow.add_edge("commit_node", END)
 
     return workflow.compile()
+
+_RECONCILIATION_GRAPH = None
+
+def get_reconciliation_graph():
+    """Compile once and reuse - the graph is stateless between invocations."""
+    global _RECONCILIATION_GRAPH
+    if _RECONCILIATION_GRAPH is None:
+        _RECONCILIATION_GRAPH = build_reconciliation_graph()
+    return _RECONCILIATION_GRAPH
+
+    

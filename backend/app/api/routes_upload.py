@@ -9,8 +9,7 @@ from backend.app.db.database import get_db
 from backend.app.db.models import Statement, Transaction, TransactionStatus
 from backend.app.api.auth import get_current_user_id
 from backend.app.services.pdf_parser import StatementParser
-from backend.app.agents.reconciliation_graph import build_reconciliation_graph
-
+from backend.app.agents.reconciliation_graph import get_reconciliation_graph
 router = APIRouter(prefix="/api/v1/upload", tags=["Upload"])
 
 
@@ -93,7 +92,7 @@ async def upload_statement(
         })
 
     # Run LangGraph Reconciliation Graph
-    reconcile_graph = build_reconciliation_graph()
+    reconcile_graph = get_reconciliation_graph()
     initial_state = {
         "statement_id": stmt.id,
         "raw_transactions": parsed_txs,
@@ -199,7 +198,7 @@ async def upload_manual_transaction(
         })
 
     # Run LangGraph Reconciliation Graph
-    reconcile_graph = build_reconciliation_graph()
+    reconcile_graph = get_reconciliation_graph()
     initial_state = {
         "statement_id": stmt.id,
         "raw_transactions": parsed_txs,

@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 from backend.app.db.database import get_db
 from backend.app.db.models import Transaction, TransactionStatus, UserGoal
 from backend.app.api.auth import get_current_user_id
-from backend.app.agents.insights_graph import build_insights_graph
+from backend.app.agents.insights_graph import get_insights_graph
 from backend.app.services.forecasting import generate_forecast
 from datetime import datetime
 
@@ -70,7 +70,7 @@ async def get_analytics_summary(
     ]
 
     # Run Insights LangGraph Agent
-    insights_graph = build_insights_graph()
+    insights_graph = get_insights_graph()
     state = {
         "transactions": tx_dicts,
         "goals": goal_dicts,

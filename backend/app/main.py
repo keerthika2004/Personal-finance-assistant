@@ -10,6 +10,11 @@ from backend.app.api.routes_analytics import router as analytics_router
 from backend.app.api.routes_chat import router as chat_router
 from backend.app.api.routes_bank_sync import router as bank_sync_router
 from backend.app.api.auth import router as auth_router
+import logging
+logging.basicConfig(
+    level = logging.INFO,
+    format = "%(asctime)s %(levelname)s %(name)s : %(message)s"
+)
 
 
 @asynccontextmanager
