@@ -47,11 +47,20 @@ def mase(actual, pred, train_series, m=7):
 
 def evaluate_categorization():
     print("\n--- Evaluating Categorization (held-out test set) ---")
-    df = pd.read_csv("data/training.csv")
-    X_train, X_test, y_train, y_test = train_test_split(
-        df["description"], df["category"],
-        test_size=0.25, random_state=42, stratify=df["category"],
-    )
+    train_df = pd.read_csv("data/training.csv")
+    test_path = Path("data/test.csv")
+    if test_path.exists():
+        test_df = pd.read_csv(test_path)
+        X_train, y_train = train_df["description"], train_df["category"]
+        X_test, y_test = test_df["description"], test_df["category"]
+        print(f"Held-out test set: data/test.csv (n={len(test_df)})")
+    else:
+        print("data/test.csv not found - falling back to a split of training.csv")
+        X_train, X_test, y_train, y_test = train_test_split(
+            train_df["description"], train_df["category"], test_size=0.25, random_state=42, stratify=train_df["category"],
+        )
+        
+    
     model = Pipeline([
     ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
 ("clf", LogisticRegression(class_weight="balanced", max_iter=1000)),
@@ -69,6 +78,7 @@ def evaluate_categorization():
     print("Confusion matrix (rows-true, cols-pred):")
     print("labels:", labels)
     print(cm)
+    
     llm_f1 = evaluate_11m_categorization(list(X_test), list(y_test))
     print ("\n== Categorization summary ==")
     print(f"Local ML Macro-F1: {f1: .4f}")

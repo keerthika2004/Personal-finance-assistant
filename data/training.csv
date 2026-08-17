@@ -1,195 +1,481 @@
 description,category
-Walmart Supercenter,Groceries
-Taco Bell,Dining
-Shell Oil,Transportation
-Comcast Cable,Utilities
-Macy's Department Store,Shopping
-AMC Theatres,Entertainment
-Direct Deposit,Income
-Transfer to Savings,Transfer
-Kaiser Permanente,Healthcare
-Netflix Subscription,Subscriptions
-Unknown Transaction,Uncategorized
-Trader Joe's,Groceries
-Starbucks Coffee,Dining
-Enterprise Rent-A-Car,Transportation
-AT&T Wireless,Utilities
-Best Buy,Shopping
-Live Nation Concerts,Entertainment
-Payroll Deposit,Income
-Transfer to Checking,Transfer
-CVS Pharmacy,Healthcare
-Spotify Premium,Subscriptions
-Generic Transaction,Uncategorized
-Safeway Grocery,Groceries
-Olive Garden,Dining
-Exxon Gas Station,Transportation
-Pacific Gas & Electric,Utilities
-Target Store,Shopping
-Regal Cinemas,Entertainment
-Social Security Deposit,Income
-Transfer to Credit Card,Transfer
-Urgent Care Center,Healthcare
-Apple Music Subscription,Subscriptions
-Unrecognized Charge,Uncategorized
-Costco Wholesale,Groceries
-Chili's Grill & Bar,Dining
-Uber Ride,Transportation
-Verizon FiOS,Utilities
-Kohl's Department Store,Shopping
-Cinemark Theatres,Entertainment
-Paycheck Deposit,Income
-Transfer to Brokerage,Transfer
-Dentist Office,Healthcare
-Hulu Subscription,Subscriptions
-Unknown Charge,Uncategorized
-WALMART SUPERCTR 1234,Groceries
-GRUBHUB DELIVERY 9876,Dining
-SHELL OIL 5432,Transportation
-COMED ELECTRIC BILL PAY,Utilities
-TARGET CORP 1111,Shopping
-REGAL CINEMAS 2222,Entertainment
-DIRECT DEPOSIT PAYROLL,Income
-TRANSFER TO SAVINGS 3333,Transfer
-CVS PHARMACY 4444,Healthcare
-NETFLIX.COM 5555,Subscriptions
-PURCHASE AT BANK OF AMERICA ATM,Uncategorized
-KROGER GROCERY 6666,Groceries
-UBER EATS 7777,Dining
-LYFT RIDE 8888,Transportation
-AT&T WIRELESS BILL,Utilities
-MACYS 9999,Shopping
-AMC THEATERS 0000,Entertainment
-SOCIAL SECURITY BENEFIT,Income
-TRANSFER FROM CHECKING 1234,Transfer
-WALGREENS 5678,Healthcare
-SPOTIFY PREMIUM 9012,Subscriptions
-FEES FOR ATM WITHDRAWAL,Uncategorized
-COSTCO WHOLESALE 3456,Groceries
-DOORDASH DELIVERY 7890,Dining
-CHEVRON GAS 1234,Transportation
-VERIZON WIRELESS BILL,Utilities
-TJ MAXX 5678,Shopping
-CINEMARK THEATRES 9012,Entertainment
-PAYROLL DEPOSIT,Income
-TRANSFER TO CHECKING 1111,Transfer
-RITE AID 2222,Healthcare
-HULU SUBSCRIPTION 3333,Subscriptions
-DEBIT CARD PURCHASE,Uncategorized
-TRADER JOE'S 4444,Groceries
-POSTMATES DELIVERY 5555,Dining
-EXXONMOBIL 6666,Transportation
-COX COMMUNICATIONS BILL,Utilities
-NORDSTROM 7777,Shopping
-BOWLING ALLEY 8888,Entertainment
-RETIREMENT ACCOUNT DEPOSIT,Income
-TRANSFER TO INVESTMENT 9999,Transfer
-WALMART PHARMACY 0000,Healthcare
-APPLE MUSIC 1234,Subscriptions
-PURCHASE AT FOREIGN ATM,Uncategorized
-Safeway 1234,Groceries
-Wells Fargo Transfer 123456,Transfer
-Electricity Bill Payment,Utilities
-Starbucks Store 1234,Dining
-Netflix.com,Subscriptions
-Direct Deposit Payroll,Income
-Uber Trip 123456,Transportation
-Kaiser Permanente 1234,Healthcare
-Walmart Supercenter 123,Shopping
-AT&T Wireless Bill,Utilities
-Amazon Online Store,Shopping
-Bank of America Transfer,Transfer
-Chase Credit Card Payment,Uncategorized
-Costco Wholesale 123,Groceries
-Regal Cinemas 1234,Entertainment
-Comcast Cable Bill,Utilities
-Direct Energy Bill Payment,Utilities
-DoorDash Delivery 1234,Dining
-Payroll Direct Deposit,Income
-Spotify Premium,Subscriptions
-Lyft Ride 123456,Transportation
-CVS Pharmacy 1234,Healthcare
-Target Store 1234,Shopping
-T-Mobile Wireless Bill,Utilities
-Home Depot Store 123,Shopping
-Venmo Transfer 123456,Transfer
-Whole Foods Market 123,Groceries
-Ticketmaster 1234,Entertainment
-Water Bill Payment,Utilities
-Grubhub Delivery 1234,Dining
-Paycheck Deposit,Income
-Hulu Subscription,Subscriptions
-Gas Station 1234,Transportation
-Urgent Care 1234,Healthcare
-Macy's Store 1234,Shopping
-Internet Bill Payment,Utilities
-Zelle Transfer 123456,Transfer
-Trader Joe's 123,Groceries
-Apple Store 1234,Shopping
-AMC Theatres 1234,Entertainment
-Sprint Wireless Bill,Utilities
-Rite Aid Pharmacy 1234,Healthcare
-Deposit from External Account,Transfer
-Income Tax Refund,Income
-Amazon Music Subscription,Subscriptions
-Parkinsons Drug Store 1234,Healthcare
-Shell Gas Station 1234,Transportation
-Best Buy Store 1234,Shopping
-Cable Bill Payment,Utilities
-Safeway 1234,Groceries
-Netflix.com,Subscriptions
-Shell Oil 5678,Transportation
-PG&E Bill Pay,Utilities
-Amazon Prime,Shopping
-Direct Deposit Payroll,Income
-Bank of America Transfer,Transfer
-Kaiser Permanente,Healthcare
-Walmart 9012,Groceries
-Spotify Premium,Subscriptions
-Exxon Mobil 3456,Transportation
-Comcast Internet,Utilities
-Target 7890,Shopping
-Paycheck Deposit,Income
-Chase Bank Transfer,Transfer
-CVS Pharmacy 2345,Healthcare
-Trader Joe's 5678,Groceries
-Hulu.com,Subscriptions
-Chevron 1234,Transportation
-Verizon Wireless,Utilities
-Home Depot 9012,Shopping
-AT&T Bill Pay,Uncategorized
-Wells Fargo Transfer,Transfer
-United Healthcare,Healthcare
-Whole Foods 3456,Groceries
-Apple Music,Subscriptions
-Valero 7890,Transportation
-Cox Communications,Utilities
-Best Buy 1234,Shopping
-Payroll Direct Deposit,Income
-Citi Bank Transfer,Transfer
-Rite Aid 5678,Healthcare
-Costco 9012,Groceries
-Disney+ Subscription,Subscriptions
-Mobil 1 2345,Transportation
-Spectrum Bill Pay,Utilities
-Macy's 7890,Shopping
-The Cheesecake Factory,Dining
-Regal Cinemas,Entertainment
-Chase Payroll Deposit,Income
-Bank Transfer 123,Transfer
-Urgent Care 456,Healthcare
-Starbucks 789,Dining
-AMC Theatres,Entertainment
-Walmart Grocery 012,Groceries
-T-Mobile Bill Pay,Uncategorized
-PGE Bill Payment,Utilities
-DoorDash 345,Dining
-GameStop 678,Entertainment
-Salary Deposit,Income
-Company Salary,Income
-Salary,Income
-PG Rent,Housing
-Apartment Rent,Housing
-Mortgage Payment,Housing
-Hostel Rent,Housing
-House Rent,Housing
+POS 519259 MEESHO,Shopping
+NEFT CR-REFUND JAN,Income
+POS 773451 ADANI ELECTRICITY,Utilities
+UPI/974404/NA,Uncategorized
+ACH DR RD INSTALLMENT 817274,Transfer
+APPLE ICLOUD ONLINE,Subscriptions
+MAX HEALTHCARE ONLINE,Healthcare
+UPI/RIKHITHA REDDY/802512,Transfer
+imps SOCIETY MAINTENANCE JUL,Housing
+JIOMART GROCERY ONLINE,Groceries
+RELIANCE FRESH PVT LTD,Groceries
+UPI/273023/NA,Uncategorized
+IMPS TO KUVERA,Transfer
+BARBEQUE NATION HYD,Dining
+UPI/039174/NA,Uncategorized
+UPI/PPF TRANSFER/518427,Transfer
+NOBROKER RENT PAYMENT JUN,Housing
+UPI/SPENCERS/854410/PAYMENT,Groceries
+CHAAYOS ONLINE,Dining
+UPI-REDBUS-ref,Transportation
+UPI-NETFLIX-ref,Subscriptions
+NEFT CR-INTEREST OCT,Income
+HOUSING SOCIETY DUES PAYMENT FEB,Housing
+PHONEPE RD INSTALLMENT 800122,Transfer
+BIGBASKET PVT LTD,Groceries
+MANIPAL HOSPITAL MUM,Healthcare
+PHARMEASY DEL,Healthcare
+CHQ PAID 827756,Uncategorized
+UPI-IRCTC-ref,Transportation
+NEFT REF 854845,Uncategorized
+IMPS TO RIKHITHA REDDY,Transfer
+UPI/MUTUAL FUND SIP/240586,Transfer
+BANK CHARGES 495417,Uncategorized
+TATA POWER PVT LTD,Utilities
+FASTAG RECHARGE PVT LTD,Transportation
+PVR ONLINE,Entertainment
+POS 844498 APOLLO PHARMACY,Healthcare
+POS 308705 AIRTEL BROADBAND,Utilities
+BOOKMYSHOW HYD,Entertainment
+CINEPOLIS BLR,Entertainment
+UPI-WONDERLA-ref,Entertainment
+MAHANAGAR GAS NOIDA,Utilities
+UPI-ZARA-ref,Shopping
+DR LAL PATHLABS KOL,Healthcare
+PVR CINEMAS CHN,Entertainment
+UPI-SWIGGY-ref,Dining
+PHONEPE KUVERA 402003,Transfer
+UPI/OLA CABS/326905/PAYMENT,Transportation
+STAR BAZAAR DEL,Groceries
+NEFT CR-BONUS JUL,Income
+TORRENT POWER BLR,Utilities
+MISC DEBIT 228785,Uncategorized
+UPI-ZOMATO-ref,Dining
+POS 215072 BLINKIT,Groceries
+MEDPLUS ONLINE,Healthcare
+BEHROUZ BIRYANI ONLINE,Dining
+PVR PVT LTD,Entertainment
+UPI/1MG/726182/PAYMENT,Healthcare
+POS 483276 BARBEQUE NATION,Dining
+UPI/SOCIETY MAINTENANCE/112186/PAYMENT,Housing
+MEESHO ONLINE,Shopping
+UPI/ACT FIBERNET/048645/PAYMENT,Utilities
+POS 429951 PROPERTY TAX,Housing
+YOUTUBE PREMIUM PVT LTD,Subscriptions
+PHONEPE ZERODHA 743523,Transfer
+UPI/REIMBURSEMENT/CREDIT/567921,Income
+UPI-PVR CINEMAS-ref,Entertainment
+UPI/PROPERTY TAX/119543/PAYMENT,Housing
+UPI-IMAGICA-ref,Entertainment
+UPI-APPLE ICLOUD-ref,Subscriptions
+PRACTO ONLINE,Healthcare
+UPI-WESTSIDE-ref,Shopping
+UPI/METRO/354918/PAYMENT,Transportation
+ZEES AMD,Subscriptions
+POS 733085 INDIAN OIL,Transportation
+IRCTC PVT LTD,Transportation
+SHELL FUEL ONLINE,Transportation
+POS 133846 MAHANAGAR GAS,Utilities
+UPI/BSNL BILL/957760/PAYMENT,Utilities
+UPI/1MG/143537/PAYMENT,Healthcare
+POS 429577 NETFLIX,Subscriptions
+HP PETROL ONLINE,Transportation
+NEFT RIKHITHA REDDY XFER,Transfer
+NEFT CR-REIMBURSEMENT MAR,Income
+ACH DR RD INSTALLMENT 101144,Transfer
+UPI-LIFESTYLE STORE-ref,Shopping
+POS 263770 BOOKMYSHOW,Entertainment
+UPI/BOOKMYSHOW/211856/PAYMENT,Entertainment
+RELIANCE TRENDS ONLINE,Shopping
+UPI/DIVIDEND/CREDIT/102218,Income
+ACH DR KUVERA 181227,Transfer
+UPI-NAMMA METRO-ref,Transportation
+POS 057115 DR LAL PATHLABS,Healthcare
+ACH DR GROWN 885217,Transfer
+H AND M ONLINE,Shopping
+Pos 541749 UNKNOWN MERCHANT,Uncategorized
+POS 120859 JIOMART GROCERY,Groceries
+LINKEDIN PREMIUM ONLINE,Subscriptions
+PHONEPE RD INSTALLMENT 168322,Transfer
+VI POSTPAID DEL,Utilities
+IMAGICA HYD,Entertainment
+DISNEY HOTSTAR DEL,Subscriptions
+imps PROPERTY TAX JAN,Housing
+NEFT CR-DIVIDEND OCT,Income
+UPI/112861/NA,Uncategorized
+MAX HEALTHCARE CHN,Healthcare
+BANK CHARGES,Uncategorized
+POS 991237 TICKETNEW,Entertainment
+MEDPLUS HYD,Healthcare
+AUDIBLE ONLINE,Subscriptions
+SHELL FUEL NOIDA,Transportation
+UPI/FLAT MAINTENANCE/751338/PAYMENT,Housing
+UPI-SONYLIV-ref,Subscriptions
+AJIO GGN,Shopping
+MORE SUPERMARKET ONLINE,Groceries
+PVR CINEMAS MUM,Entertainment
+UPI/INTEREST/CREDIT/083526,Income
+POS 731919 SPENCERS,Groceries
+NEFT CR-DIVIDEND APR,Income
+POS 798305 INOX LEISURE,Entertainment
+POS 944011 MAX HEALTHCARE,Healthcare
+Pos 475367 UNKNOWN MERCHANT,Uncategorized
+BWSSB WATER ONLINE,Utilities
+SOCIETY MAINTENANCE PAYMENT DEC,Housing
+POS 471447 NAMMA METRO,Transportation
+IMPS REIMBURSEMENT CREDIT,Income
+TORRENT POWER MUM,Utilities
+FLAT MAINTENANCE PAYMENT APR,Housing
+UPI-AMAZON PRIME-ref,Subscriptions
+UPI/FREELANCE PAYMENT/CREDIT/116216,Income
+PHONEPE SELF ACCOUNT 122306,Transfer
+UPI/MEESHO/296450/PAYMENT,Shopping
+MAX HEALTHCARE PVT LTD,Healthcare
+BSNL BILL KOL,Utilities
+UPI-TATA CLIQ-ref,Shopping
+UPI-RELIANCE FRESH-ref,Groceries
+NEFT CR-REIMBURSEMENT SEP,Income
+BARBEQUE NATION ONLINE,Dining
+NEFT CR-SALARY NOV,Income
+POS 273796 DMART,Groceries
+Pos 615422 UNKNOWN MERCHANT,Uncategorized
+UPI-FLIPKART-ref,Shopping
+ZARA PVT LTD,Shopping
+ZOMATO PVT LTD,Dining
+UPI/RELIANCE FRESH/705466/PAYMENT,Groceries
+POS 368606 MEESHO,Shopping
+UPI/REFUND/CREDIT/890649,Income
+REDBUS ONLINE,Transportation
+PHONEPE GROWN 572237,Transfer
+UPI-VI POSTPAID-ref,Utilities
+DIVIDEND CREDIT SB AC 636853,Income
+imps RENT FEB,Housing
+ZEPTO PVT LTD,Groceries
+UPI-ABHIBUS-ref,Transportation
+imps PROPERTY TAX OCT,Housing
+MCDONALDS HYD,Dining
+ABHIBUS PVT LTD,Transportation
+UPI/MCDONALDS/485098/PAYMENT,Dining
+NEFT CR-FREELANCE PAYMENT SEP,Income
+POS 808182 NYKAA,Shopping
+AUDIBLE PVT LTD,Subscriptions
+UPI/1MG/477264/PAYMENT,Healthcare
+POS 017253 PROPERTY TAX,Housing
+UPI/YOUTUBE PREMIUM/273333/PAYMENT,Subscriptions
+UPI/MUTUAL FUND SIP/039848,Transfer
+Pos 242560 UNKNOWN MERCHANT,Uncategorized
+UPI/TSRTC/467530/PAYMENT,Transportation
+UPI-TSRTC-ref,Transportation
+UBER INDIA MUM,Transportation
+JIO FIBER PVT LTD,Utilities
+STAR BAZAAR GGN,Groceries
+WONDERLA NOIDA,Entertainment
+PHONEPE MUTUAL FUND SIP 046075,Transfer
+NEFT CR-FREELANCE PAYMENT MAY,Income
+IMPS TO MUTUAL FUND SIP,Transfer
+SWIGGY PVT LTD,Dining
+UPI/689268/NA,Uncategorized
+UPI/ACT FIBERNET/918925/PAYMENT,Utilities
+PHONEPE RD INSTALLMENT 071408,Transfer
+POS 133320 FAASOS,Dining
+NETFLIX ONLINE,Subscriptions
+POS 774697 BIGBASKET,Groceries
+UPI-BLINKIT-ref,Groceries
+INSTAMART KOL,Groceries
+MEESHO PVT LTD,Shopping
+KFC HYD,Dining
+UPI/SHELL FUEL/721266/PAYMENT,Transportation
+NEFT CR-SALARY OCT,Income
+UPI/AJIO/431985/PAYMENT,Shopping
+BANK CHARGES 083209,Uncategorized
+MCDONALDS DEL,Dining
+POS 225762 NETMEDS,Healthcare
+SERVICE CHARGE 554076,Uncategorized
+UPI-ZEES-ref,Subscriptions
+POS 588096 RELIANCE TRENDS,Shopping
+HOME LOAN EMI PAYMENT JUN,Housing
+UPI-CAB-ref,Transportation
+UPI-TICKETNEW-ref,Entertainment
+BARBEQUE NATION PVT LTD,Dining
+BANK CHARGES 229827,Uncategorized
+UPI/ZOMATO/551302/PAYMENT,Dining
+NETFLIX DEL,Subscriptions
+POS 436356 PROPERTY TAX,Housing
+UPI-LINKEDIN PREMIUM-ref,Subscriptions
+CINEPOLIS PVT LTD,Entertainment
+POS 986758 BARBEQUE NATION,Dining
+INDIAN OIL PVT LTD,Transportation
+NETMEDS ONLINE,Healthcare
+POS 346021 TICKETNEW,Entertainment
+REFUND CREDIT SB AC 127260,Income
+UPI/REFUND/CREDIT/796181,Income
+SPENCERS GGN,Groceries
+NYKAA MUM,Shopping
+BURGER KING PVT LTD,Dining
+TATA POWER HYD,Utilities
+imps RENT MAR,Housing
+NEFT CR-DIVIDEND FEB,Income
+UPI/AJIO/916066/PAYMENT,Shopping
+ACH DR MUTUAL FUND SIP 108503,Transfer
+BWSSB WATER PVT LTD,Utilities
+Pos 509693 UNKNOWN MERCHANT,Uncategorized
+BSNL BILL GGN,Utilities
+UPI-MEESHO-ref,Shopping
+CAFE COFFEE DAY ONLINE,Dining
+UPI/ABHIBUS/374403/PAYMENT,Transportation
+UPI/259813/NA,Uncategorized
+TORRENT POWER GGN,Utilities
+UPI/968740/NA,Uncategorized
+UPI-BSNL BILL-ref,Utilities
+UPI-BURGER KING-ref,Dining
+IMPS CASHBACK CREDIT,Income
+NEFT PPF TRANSFER XFER,Transfer
+AUTO PVT LTD,Transportation
+WESTSIDE HYD,Shopping
+UPI/YOUTUBE PREMIUM/769763/PAYMENT,Subscriptions
+UPI/010982/NA,Uncategorized
+UPI/TSRTC/899675/PAYMENT,Transportation
+UPI/AUTO/853192/PAYMENT,Transportation
+UPI/SNAPDEAL/632131/PAYMENT,Shopping
+JIO FIBER ONLINE,Utilities
+CHQ PAID,Uncategorized
+ZEPTO MUM,Groceries
+SNOW WORLD ONLINE,Entertainment
+1MG PVT LTD,Healthcare
+ACH DR KUVERA 273821,Transfer
+UPI/RIKHITHA REDDY/510663,Transfer
+UPI-1MG-ref,Healthcare
+TATA POWER MUM,Utilities
+UPI-YOUTUBE PREMIUM-ref,Subscriptions
+BSNL BILL CHN,Utilities
+ACH DR MUTUAL FUND SIP 964602,Transfer
+NAMMA METRO KOL,Transportation
+UPI/BEHROUZ BIRYANI/828437/PAYMENT,Dining
+UPI/236796/NA,Uncategorized
+RENT PAYMENT FEB,Housing
+NEFT CR-REIMBURSEMENT MAY,Income
+STAR BAZAAR PVT LTD,Groceries
+UPI/INTEREST/CREDIT/261817,Income
+UPI/1MG/951552/PAYMENT,Healthcare
+MISC DEBIT 682216,Uncategorized
+MORE SUPERMARKET PVT LTD,Groceries
+UPI/INOX LEISURE/144592/PAYMENT,Entertainment
+BOOKMYSHOW CHN,Entertainment
+MAX HEALTHCARE PUN,Healthcare
+POS 493259 SOCIETY MAINTENANCE,Housing
+NEFT RD INSTALLMENT XFER,Transfer
+UPI/NETFLIX/618691/PAYMENT,Subscriptions
+DELHI METRO PVT LTD,Transportation
+UPI/HOUSING SOCIETY DUES/447010/PAYMENT,Housing
+TATA CLIQ GGN,Shopping
+imps RENT OCT,Housing
+POS 370660 JIO FIBER,Utilities
+UPI/PPF TRANSFER/785818,Transfer
+UPI-H AND M-ref,Shopping
+UPI-INSTAMART-ref,Groceries
+UPI/RD INSTALLMENT/360924,Transfer
+TATA POWER ONLINE,Utilities
+ZARA ONLINE,Shopping
+DELHI METRO CHN,Transportation
+ACH CREDIT CASHBACK,Income
+ACT FIBERNET KOL,Utilities
+UPI/MEDPLUS/143136/PAYMENT,Healthcare
+UPI-INOX LEISURE-ref,Entertainment
+KFC ONLINE,Dining
+POS 519295 BSES YAMUNA,Utilities
+PVR CINEMAS PVT LTD,Entertainment
+UPI/PPF TRANSFER/631844,Transfer
+UPI-HALDIRAM-ref,Dining
+NATURES BASKET HYD,Groceries
+UPI/991714/NA,Uncategorized
+SERVICE CHARGE 094366,Uncategorized
+PHONEPE RD INSTALLMENT 939261,Transfer
+POS 004359 ZEES,Subscriptions
+POS 746721 CHAAYOS,Dining
+UPI/HOUSING SOCIETY DUES/508757/PAYMENT,Housing
+NETFLIX KOL,Subscriptions
+POS 388692 PVR,Entertainment
+UPI/APOLLO PHARMACY/253313/PAYMENT,Healthcare
+JIO FIBER GGN,Utilities
+Pos 035799 UNKNOWN MERCHANT,Uncategorized
+MANIPAL HOSPITAL GGN,Healthcare
+UPI/CAFE COFFEE DAY/139822/PAYMENT,Dining
+UPI-SUBWAY-ref,Dining
+NEFT REF 053961,Uncategorized
+CULT FIT PVT LTD,Subscriptions
+PHONEPE KUVERA 172463,Transfer
+UPI-BWSSB WATER-ref,Utilities
+NEFT SELF ACCOUNT XFER,Transfer
+NEFT CR-REFUND DEC,Income
+POS 443425 STAR BAZAAR,Groceries
+BIKE NOIDA,Transportation
+AIRTEL BROADBAND ONLINE,Utilities
+ACH CREDIT REFUND,Income
+MANIPAL HOSPITAL ONLINE,Healthcare
+BIGBASKET CHN,Groceries
+MEESHO AMD,Shopping
+POS 296151 HOME LOAN EMI,Housing
+UPI/REFUND/CREDIT/062159,Income
+UPI/MANIPAL HOSPITAL/267839/PAYMENT,Healthcare
+SPOTIFY PVT LTD,Subscriptions
+TORRENT POWER PVT LTD,Utilities
+POS 631908 SHELL FUEL,Transportation
+PVR DEL,Entertainment
+POS 083793 STAR HEALTH INSURANCE,Healthcare
+SONYLIV PVT LTD,Subscriptions
+Pos 101887 UNKNOWN MERCHANT,Uncategorized
+NEFT GROWN XFER,Transfer
+BONUS CREDIT SB AC 380127,Income
+imps NOBROKER RENT FEB,Housing
+NETMEDS AMD,Healthcare
+PVR AMD,Entertainment
+WONDERLA AMD,Entertainment
+UPI-MORE SUPERMARKET-ref,Groceries
+HOME LOAN EMI PAYMENT DEC,Housing
+UPI/BONUS/CREDIT/650180,Income
+ADANI ELECTRICITY PVT LTD,Utilities
+HALDIRAM PVT LTD,Dining
+UPI/H AND M/260803/PAYMENT,Shopping
+TATA CLIQ ONLINE,Shopping
+JIO FIBER KOL,Utilities
+IMPS TO GROWN,Transfer
+UPI/MEDPLUS/381770/PAYMENT,Healthcare
+UPI/INOX LEISURE/342661/PAYMENT,Entertainment
+BSNL BILL PVT LTD,Utilities
+UPI/REIMBURSEMENT/CREDIT/840815,Income
+UPI-NETMEDS-ref,Healthcare
+FORTIS HOSPITAL PVT LTD,Healthcare
+UPI/BURGER KING/025016/PAYMENT,Dining
+UPI/SELF ACCOUNT/666750,Transfer
+YOUTUBE PREMIUM ONLINE,Subscriptions
+UPI-STAR HEALTH INSURANCE-ref,Healthcare
+POS 822355 FORTIS HOSPITAL,Healthcare
+UPI/CHAAYOS/822178/PAYMENT,Dining
+UPI/PVR/513518/PAYMENT,Entertainment
+HALDIRAM DEL,Dining
+UPI/SNOW WORLD/099855/PAYMENT,Entertainment
+HP PETROL PVT LTD,Transportation
+IMAGICA DEL,Entertainment
+WESTSIDE BLR,Shopping
+POS 664133 NYKAA,Shopping
+DISNEY HOTSTAR GGN,Subscriptions
+UPI/STARBUCKS/800849/PAYMENT,Dining
+UPI-CULT FIT-ref,Subscriptions
+UPI/HALDIRAM/022768/PAYMENT,Dining
+POS 822594 NATURES BASKET,Groceries
+imps FLAT MAINTENANCE JUL,Housing
+POS 229661 PIZZA HUT,Dining
+POS 476824 NOBROKER RENT,Housing
+MANIPAL HOSPITAL PVT LTD,Healthcare
+IMPS DIVIDEND CREDIT,Income
+imps HOUSING SOCIETY DUES JUN,Housing
+UPI/TICKETNEW/386042/PAYMENT,Entertainment
+POS 246128 PAYT INSIDER,Entertainment
+UPI/SNOW WORLD/138661/PAYMENT,Entertainment
+MISC DEBIT 359810,Uncategorized
+CHQ PAID 107349,Uncategorized
+UPI/INOX LEISURE/225777/PAYMENT,Entertainment
+BONUS CREDIT SB AC 088836,Income
+NEFT REF 531163,Uncategorized
+DISNEY HOTSTAR PVT LTD,Subscriptions
+POS 713359 MANIPAL HOSPITAL,Healthcare
+POS 111290 HOME LOAN EMI,Housing
+UPI-SNAPDEAL-ref,Shopping
+CULT FIT BLR,Subscriptions
+UPI/ZEES/205821/PAYMENT,Subscriptions
+SNAPDEAL PVT LTD,Shopping
+NEFT REF 543084,Uncategorized
+UPI/STAR BAZAAR/262209/PAYMENT,Groceries
+UPI-BTMC-ref,Transportation
+NEFT CR-SALARY JUN,Income
+TORRENT POWER ONLINE,Utilities
+ADJUSTMENT ENTRY,Uncategorized
+NEFT CR-CASHBACK MAR,Income
+POS 531640 ACT FIBERNET,Utilities
+KFC PVT LTD,Dining
+YOUTUBE PREMIUM GGN,Subscriptions
+UPI/632455/NA,Uncategorized
+IMAGICA PVT LTD,Entertainment
+UPI/NOBROKER RENT/337545/PAYMENT,Housing
+UPI/CAB/760062/PAYMENT,Transportation
+UPI/DMART/595939/PAYMENT,Groceries
+SPENCERS ONLINE,Groceries
+POS 299327 AMAZON PAY INDIA,Shopping
+FLIPKART ONLINE,Shopping
+UPI/DR LAL PATHLABS/037866/PAYMENT,Healthcare
+POS 883377 ZEPTO,Groceries
+UPI/JIOMART GROCERY/137502/PAYMENT,Groceries
+UPI/SPOTIFY/472848/PAYMENT,Subscriptions
+UPI/REIMBURSEMENT/CREDIT/029967,Income
+NOBROKER RENT PAYMENT MAY,Housing
+UPI/AMAZON PRIME/601841/PAYMENT,Subscriptions
+POS 939313 IMAGICA,Entertainment
+CULT FIT ONLINE,Subscriptions
+UPI-TORRENT POWER-ref,Utilities
+UPI/NETFLIX/969498/PAYMENT,Subscriptions
+POS 563179 RAPIDO,Transportation
+UPI/RELIANCE TRENDS/031864/PAYMENT,Shopping
+SHELL FUEL AMD,Transportation
+ZEPTO ONLINE,Groceries
+UPI-PHARMEASY-ref,Healthcare
+TSRTC PVT LTD,Transportation
+NEFT REF,Uncategorized
+NEFT CR-REIMBURSEMENT APR,Income
+UPI-CHAAYOS-ref,Dining
+UPI/921224/NA,Uncategorized
+imps RENT JUL,Housing
+POS 212776 STAR BAZAAR,Groceries
+imps HOUSING SOCIETY DUES JAN,Housing
+UPI/SOCIETY MAINTENANCE/712461/PAYMENT,Housing
+NEFT MUTUAL FUND SIP XFER,Transfer
+UPI/SOCIETY MAINTENANCE/359187/PAYMENT,Housing
+UPI/ZEPTO/253396/PAYMENT,Groceries
+UPI/STAR BAZAAR/876026/PAYMENT,Groceries
+POS 146549 SPOTIFY,Subscriptions
+POS 679153 NOBROKER RENT,Housing
+UPI/WONDERLA/380555/PAYMENT,Entertainment
+imps FLAT MAINTENANCE MAY,Housing
+TICKETNEW PVT LTD,Entertainment
+CAFE COFFEE DAY CHN,Dining
+POS 997995 APPLE ICLOUD,Subscriptions
+BLINKIT PVT LTD,Groceries
+UPI/NETMEDS/109666/PAYMENT,Healthcare
+ACH DR RIKHITHA REDDY 106962,Transfer
+NEFT CR-REFUND SEP,Income
+PHARMEASY PVT LTD,Healthcare
+POS 840167 NOBROKER RENT,Housing
+DMART ONLINE,Groceries
+ACT FIBERNET ONLINE,Utilities
+UPI/PPF TRANSFER/756663,Transfer
+UPI/YOUTUBE PREMIUM/254626/PAYMENT,Subscriptions
+KFC AMD,Dining
+UPI/DISNEY HOTSTAR/507912/PAYMENT,Subscriptions
+LIFESTYLE STORE ONLINE,Shopping
+RENT PAYMENT MAY,Housing
+FLIPKART PVT LTD,Shopping
+POS 374837 ADANI ELECTRICITY,Utilities
+ACH CREDIT INTEREST,Income
+BIKE ONLINE,Transportation
+NEFT ZERODHA XFER,Transfer
+RELIANCE FRESH ONLINE,Groceries
+RAPIDO PVT LTD,Transportation
+PHONEPE PPF TRANSFER 659557,Transfer
+POS 052956 INSTAMART,Groceries
+PAYT INSIDER ONLINE,Entertainment
+UPI-NYKAA-ref,Shopping
+UPI/BEHROUZ BIRYANI/840957/PAYMENT,Dining
+POS 789369 FLAT MAINTENANCE,Housing
+FAASOS PVT LTD,Dining
+IMPS FREELANCE PAYMENT CREDIT,Income
+UPI/692644/NA,Uncategorized
+UPI/023512/NA,Uncategorized
+POS 583723 NOBROKER RENT,Housing
+TAXI PVT LTD,Transportation
+POS 670645 SHELL FUEL,Transportation
+POS 295868 STAR HEALTH INSURANCE,Healthcare
+POS 974641 ZARA,Shopping
+UPI/BSNL BILL/687035/PAYMENT,Utilities
+Pos 809686 UNKNOWN MERCHANT,Uncategorized
+MYNTRA ONLINE,Shopping
+STARBUCKS ONLINE,Dining

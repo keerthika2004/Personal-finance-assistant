@@ -1,18 +1,18 @@
 # Categorization Benchmark Results
 
-## Zero-shot LLM (Groq Llama-3-70b)
+## Zero-shot LLM (Groq openai/gpt-oss-120b)
 - **Accuracy**: N/A (Baseline reference)
-- **Macro-F1**: 0.8431
+- **Macro-F1**: 0.9197
 - **Avg Latency per tx**: ~500ms - 1500ms (Network bound)
 - **Approx Cost**: ~$0.05 per 1k transactions
 
 ## TF-IDF + Logistic Regression (Local ML)
-- **Accuracy**: 0.8571
-- **Macro-F1**: 0.8439
+- **Accuracy**: 0.9833
+- **Macro-F1**: 0.9833
 - **Avg Latency per tx**: 0.03 ms
 - **Approx Cost**: $0.00 (Local compute)
 
-*Note: Benchmarked on a held-out test set of 49 varied transactions.*
+*Note: Benchmarked on a held-out test set of 120 varied transactions.*
 
 ## Cashflow Forecasting (Prophet)
 - **MAE**: $283.23
@@ -20,8 +20,8 @@
 - **MASE**: 0.64 (Prophet is BETTER than seasonal naive which got MAE: $414.58)
 
 --- Evaluating Categorization ---
-ML Model Macro-F1: 0.8439
-LLM Model Macro-F1: 0.8431
+ML Model Macro-F1: 0.9833
+LLM Model Macro-F1: 0.9197
 
 --- Evaluating Forecasting ---
 Prophet MAE: $283.23
@@ -36,6 +36,6 @@ Anomaly F1: 1.00
 
 --- Evaluating Chatbot QA ---
 Chatbot Accuracy: 3/3 (100.0%)
-*Note: Evaluated using `llama-3.3-70b-versatile`. The model successfully executed tool calls across all queries after adjusting the `top_transactions` tool parameter schema to accept string integers.*
+*Note: Evaluated using `openai/gpt-oss-120b`. The model successfully executed tool calls across all queries after adjusting the `top_transactions` tool parameter schema to accept string integers.*
 
 Eval complete. All calls traced in Langfuse if configured.

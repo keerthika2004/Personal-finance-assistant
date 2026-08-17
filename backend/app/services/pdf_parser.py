@@ -226,7 +226,7 @@ class StatementParser:
             raise ValueError("Could not extract any text from the image using OCR.")
 
         client = Groq(api_key=groq_api_key)
-        model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
         prompt = (
             "You are a strict data extraction tool. I have OCR'd a bank statement image. "

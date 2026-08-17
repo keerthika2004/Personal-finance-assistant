@@ -159,7 +159,7 @@ Create a `.env` file in `backend/`:
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5433/financial_ai_db
 GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
 ```
 
 ### 3. Backend Setup
