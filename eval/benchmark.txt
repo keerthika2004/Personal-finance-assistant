@@ -21,7 +21,7 @@
 
 --- Evaluating Categorization ---
 ML Model Macro-F1: 0.8439
-LLM Model Macro-F1: 0.8229
+LLM Model Macro-F1: 0.8431
 
 --- Evaluating Forecasting ---
 Prophet MAE: $283.23

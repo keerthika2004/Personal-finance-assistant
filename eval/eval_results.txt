@@ -39,7 +39,7 @@ labels: ['Dining', 'Entertainment', 'Groceries', 'Healthcare', 'Housing', 'Incom
 
 == Categorization summary ==
 Local ML Macro-F1:  0.8439
-LLM Macro-F1: 0.8229
+LLM Macro-F1: 0.8431
 
 --- Evaluating Forecasting ---
 Prophet MAE: $ 283.23 SMAPE: 196.0% MASE: 0.64
