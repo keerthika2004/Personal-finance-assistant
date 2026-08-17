@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 class HybridAnomalyDetector:
     """Hybrid Machine Learning Anomaly Detection Service for Financial Transactions.
     
-    Combines Scikit-Learn's unsupervised Isolation Forest algorithm with robust
-    category Median & Interquartile Range (IQR) Z-Score profiling to prevent outlier skewing.
+    PRIMARY signal - deterministic, explainable rules: robust per-category median/IQR z-scores, absolute-value thresholds, and duplicate / uncategorized flags. These decide the flag and produce the human-readable reason shown in the HITL queue.
+
+    SECONDARY signal - an unsupervised Isolation Forest, refit per batch on [log_amount, category_z_score], contributes a score that nudges the composite. It's a per-batch outlier scorer, not a trained model; on small pools the rules carry most of the weight. (Isolation Forest is tree-based, so features need no scaling.)
     """
 
     @classmethod
@@ -53,9 +54,11 @@ class HybridAnomalyDetector:
             iqr_val = stats["iqr"]
             
             z_score = abs(amt - med_val) / iqr_val
-            cat_code = float(hash(cat) % 100)
-
-            feature_rows.append([log_amt, cat_code, z_score])
+            # cat_code = float(hash(cat) % 100)
+            #Features: absolute magnitude (log) + within-category deviation (robust z-score).
+            # We deliberately do not encode the category as a numeric hash - a hash has no ordinal meaning, so it would just inject noise into the trees.
+            # Category context already enters through the per-category z-score
+            feature_rows.append([log_amt, z_score])
 
         X = np.array(feature_rows)
 
@@ -66,7 +69,7 @@ class HybridAnomalyDetector:
                 iso_forest = IsolationForest(
                     n_estimators=100,
                     max_samples=min(256, len(all_pool)),
-                    contamination=0.10,
+                    contamination="auto",
                     random_state=42
                 )
                 iso_forest.fit(X)
