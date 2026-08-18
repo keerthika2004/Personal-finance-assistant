@@ -264,7 +264,7 @@ async def upload_chat_transaction(
     from datetime import datetime
     
     # Initialize LLM with structured output using a faster model to avoid rate limits
-    llm = LLMFactory.get_llm(temperature=0.0, model_name="llama3-8b-8192")
+    llm = LLMFactory.get_llm(temperature=0.0, model_name="openai/gpt-oss-20b")
     structured_llm = llm.with_structured_output(ExtractedTransaction)
     
     today_str = datetime.now().strftime("%Y-%m-%d")

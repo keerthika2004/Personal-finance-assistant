@@ -57,8 +57,8 @@ pip install -r requirements.txt
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql+asyncpg://postgres:pass@localhost:5432/db` |
 | `REDIS_URL` | Redis connection string for caching/rate-limits | `redis://localhost:6379/0` |
 | `GROQ_API_KEY` | Groq API Key for LLM inference | `gsk_...` |
-| `GROQ_MODEL` | Heavy reasoning model | `llama3-70b-8192` |
-| `GROQ_FAST_MODEL` | Fast classification model | `llama3-8b-8192` |
+| `GROQ_MODEL` | Heavy reasoning model | `openai/gpt-oss-120b` |
+| `GROQ_FAST_MODEL` | Fast classification model | `openai/gpt-oss-20b` |
 | `JWT_SECRET_KEY` | Secret key for JWT signing | `change-me-to-a-long-random-string` |
 
 3. Run the application:

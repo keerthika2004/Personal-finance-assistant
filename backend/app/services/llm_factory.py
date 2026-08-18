@@ -35,9 +35,9 @@ class LLMFactory:
         if model_name:
             model = model_name
         elif fast:
-            model = os.getenv("GROQ_FAST_MODEL", "llama3-8b-8192")
+            model = os.getenv("GROQ_FAST_MODEL", "openai/gpt-oss-20b")
         else:
-            model = os.getenv("GROQ_MODEL", "llama3-70b-8192")
+            model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 
         # Basic Langfuse Observability Integration
@@ -54,7 +54,7 @@ class LLMFactory:
             model_name=model,
             temperature=temperature,
             max_tokens= max_tokens,
-            timeout = 30,
-            max_retries=6, 
+            timeout=60,
+            max_retries=2, 
             callbacks=callbacks if callbacks else None
         )

@@ -59,7 +59,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "Unified Financial AI Assistant Backend",
-        "llm_model": os.getenv("GROQ_MODEL", "llama3-70b-8192")
+        "llm_model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     }
 
 

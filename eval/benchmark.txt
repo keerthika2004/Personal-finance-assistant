@@ -1,6 +1,6 @@
 # Categorization Benchmark Results
 
-## Zero-shot LLM (Groq llama3-70b-8192)
+## Zero-shot LLM (Groq openai/gpt-oss-120b)
 - **Accuracy**: N/A (Baseline reference)
 - **Macro-F1**: 0.9741
 - **Avg Latency per tx**: ~500ms - 1500ms (Network bound)
@@ -36,6 +36,6 @@ Anomaly F1: 1.00
 
 --- Evaluating Chatbot QA ---
 Chatbot Accuracy: 3/3 (100.0%)
-*Note: Evaluated using `llama3-70b-8192`. The model successfully executed tool calls across all queries after adjusting the `top_transactions` tool parameter schema to accept string integers.*
+*Note: Evaluated using `openai/gpt-oss-120b`. The model successfully executed tool calls across all queries after adjusting the `top_transactions` tool parameter schema to accept string integers.*
 
 Eval complete. All calls traced in Langfuse if configured.
