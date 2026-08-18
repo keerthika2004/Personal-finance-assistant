@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { FULL_DEMO_SUMMARY } from '../demoData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Zap, Target, Plus, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Zap, Target, Plus, Trash2, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -96,7 +96,12 @@ export default function Dashboard() {
   };
 
   if (!summary) {
-    return <div className="animate-slide-up"><h2>Loading Dashboard...</h2></div>;
+    return (
+      <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem', color: 'var(--text-secondary)' }}>
+        <Loader2 className="animate-spin" size={48} style={{ color: 'var(--primary)' }} />
+        <h2>Loading Dashboard...</h2>
+      </div>
+    );
   }
 
   // Convert the backend's monthly_trend object to an array suitable for Recharts

@@ -27,6 +27,8 @@
   <img src="assets/dashboard1.png" alt="Financial Dashboard" width="800"/>
 </div>
 
+**[Backend Documentation](backend/README.md)** | **[Frontend Documentation](frontend/README.md)**
+
 Hi there! I'm **Keerthika**, and welcome to **FinAI Assistant**! 
 
 I built this project to solve a real headache I faced every month: tracking expenses across multiple Indian bank accounts, credit cards, and random PDF/image receipts without spending hours typing numbers into spreadsheets.
@@ -94,6 +96,27 @@ When designing FinAI Assistant, I wanted to go beyond simple API wrappers and bu
 
 ---
 
+## Evaluation Benchmarks & The Hybrid Model Story
+
+I ran extensive evaluations on synthetic held-out test data (`eval/run_evals.py`) to measure the performance of various models.
+
+**The Disjoint-Merchant Categorization Story**
+Categorizing transactions from *known* merchants is easy, but what happens when you visit a new cafe or use a new app? I built a hybrid ML + LLM categorizer to solve this:
+1. **Local ML Model (TF-IDF Word Features)**: Overfit to known merchants. On completely unseen merchants, it plummeted to a **0.36** Macro-F1.
+2. **Local ML Model (Word + Character n-grams)**: Adding character-level features to catch partial matches improved the score to **0.45** Macro-F1.
+3. **Zero-Shot LLM (Llama-3.1-70b-versatile)**: The clear winner. It achieved an astounding **0.97** Macro-F1 on completely unseen merchants by reasoning about the merchant name contextually.
+
+**Conclusion**: Our system uses the ultra-fast Local ML model as a first pass, and automatically falls back to the high-accuracy Zero-Shot LLM for low-confidence or unseen merchants.
+
+**Cashflow Forecasting (Meta Prophet)**
+- **MASE: 0.64** (Meaning the Prophet model significantly beats a seasonal naive baseline!)
+
+**Anomaly Detection & Chatbot QA**
+- **Anomaly Flagging (Synthetic Data)**: F1-Score **1.00**
+- **Chatbot Tool-Calling Accuracy**: **3/3**
+
+---
+
 ## Architecture & System Design
 
 ```mermaid
@@ -140,26 +163,51 @@ graph TD
 - **Backend**: FastAPI, SQLAlchemy 2.0 Async (asyncpg), PostgreSQL, Pydantic, Python 3.11
 - **Frontend**: React, TypeScript, Vite, Recharts, Lucide Icons, React Hot Toast
 - **Banking Integration**: RBI Account Aggregator Framework (Setu / Open Banking APIs)
-- **AI/ML**: LangGraph, LangChain, Scikit-Learn (Isolation Forest & Logistic Regression), Meta Prophet, Tesseract OCR, Groq API (Llama-3.3-70b)
+- **AI/ML**: LangGraph, LangChain, Scikit-Learn (Isolation Forest & Logistic Regression), Meta Prophet, Tesseract OCR, Groq API (Llama 3.1 models)
 - **DevOps & CI/CD**: GitHub Actions (`.github/workflows/ci.yml`), Docker, Docker Compose, Pytest
 - **Observability**: Langfuse Tracing
 
 ---
 
+## Monorepo Layout
+
+```text
+.
+├── backend/            # FastAPI, LangGraph agents, ML services
+├── frontend/           # React + Vite dashboard SPA
+├── eval/               # Evaluation benchmarking scripts and results
+├── scripts/            # Synthetic data generation and model training scripts
+├── data/               # Output directory for CSV datasets
+├── assets/             # README images
+└── docker-compose.yml  # Local stack orchestration
+```
+
+---
+
 ## Running Locally
+
+### Quickstart with Docker Compose
+
+If you have Docker installed, you can spin up the entire stack (Postgres + Redis) instantly:
+```bash
+docker-compose up -d
+```
+*(You will still need to run the backend and frontend separately for full development mode, but Docker handles the databases).*
 
 ### 1. Prerequisites
 - Python 3.10+
 - Node.js 18+
-- PostgreSQL
+- PostgreSQL (if not using Docker)
 - Tesseract OCR (`brew install tesseract` or `apt-get install tesseract-ocr`)
 
 ### 2. Environment Setup
-Create a `.env` file in `backend/`:
+Create a `.env` file in `backend/` using the `.env.example` file:
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5433/financial_ai_db
+DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5432/financial_ai_db
 GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=openai/gpt-oss-120b
+GROQ_MODEL=llama-3.1-70b-versatile
+GROQ_FAST_MODEL=llama-3.1-8b-instant
+JWT_SECRET_KEY=change-me-to-a-long-random-string
 ```
 
 ### 3. Backend Setup
@@ -193,6 +241,16 @@ PYTHONPATH=. python eval/run_evals.py
 ```
 
 ---
+
+## Roadmap & Known Limitations
+- **Data Integrations**: Currently simulates RBI Account Aggregator. Production requires a live Setu/Finvu sandbox key.
+- **Multi-currency**: Currently assumes a base currency (INR/USD) globally. No live FX conversions yet.
+- **Budgeting**: Alert triggers for crossing custom budget thresholds are planned.
+
+---
+
+## About the Author
+Built by **Keerthika**. I'm passionate about the intersection of AI, agentic architectures, and personal finance. Feel free to explore the repository, run the evals yourself, or test the live demo!
 
 ## License
 MIT License
