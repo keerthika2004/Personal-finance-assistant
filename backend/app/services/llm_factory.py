@@ -35,9 +35,9 @@ class LLMFactory:
         if model_name:
             model = model_name
         elif fast:
-            model = os.getenv("GROQ_FAST_MODEL", "openai/gpt-oss-20b")
+            model = os.getenv("GROQ_FAST_MODEL", "llama3-8b-8192")
         else:
-            model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+            model = os.getenv("GROQ_MODEL", "llama3-70b-8192")
 
 
         # Basic Langfuse Observability Integration

@@ -104,7 +104,7 @@ I ran extensive evaluations on synthetic held-out test data (`eval/run_evals.py`
 Categorizing transactions from *known* merchants is easy, but what happens when you visit a new cafe or use a new app? I built a hybrid ML + LLM categorizer to solve this:
 1. **Local ML Model (TF-IDF Word Features)**: Overfit to known merchants. On completely unseen merchants, it plummeted to a **0.36** Macro-F1.
 2. **Local ML Model (Word + Character n-grams)**: Adding character-level features to catch partial matches improved the score to **0.45** Macro-F1.
-3. **Zero-Shot LLM (Llama-3.1-70b-versatile)**: The clear winner. It achieved an astounding **0.97** Macro-F1 on completely unseen merchants by reasoning about the merchant name contextually.
+3. **Zero-Shot LLM (Llama3-70b-8192)**: The clear winner. It achieved an astounding **0.97** Macro-F1 on completely unseen merchants by reasoning about the merchant name contextually.
 
 **Conclusion**: Our system uses the ultra-fast Local ML model as a first pass, and automatically falls back to the high-accuracy Zero-Shot LLM for low-confidence or unseen merchants.
 
@@ -205,8 +205,8 @@ Create a `.env` file in `backend/` using the `.env.example` file:
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5432/financial_ai_db
 GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.1-70b-versatile
-GROQ_FAST_MODEL=llama-3.1-8b-instant
+GROQ_MODEL=llama3-70b-8192
+GROQ_FAST_MODEL=llama3-8b-8192
 JWT_SECRET_KEY=change-me-to-a-long-random-string
 ```
 
