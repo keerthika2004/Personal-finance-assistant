@@ -10,6 +10,9 @@ from backend.app.api.auth import get_current_user_id
 from backend.app.agents.insights_graph import get_insights_graph
 from backend.app.services.forecasting import generate_forecast
 from datetime import datetime
+import json
+
+_insights_cache = {}
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics"])
 
@@ -82,7 +85,14 @@ async def get_analytics_summary(
         "goal_coaching": {}
     }
 
-    final_state = insights_graph.invoke(state)
+    cache_key = f"{user_id}_{len(tx_dicts)}_{sum(t['amount'] for t in tx_dicts)}"
+    if cache_key in _insights_cache:
+        final_state = _insights_cache[cache_key]
+    else:
+        final_state = insights_graph.invoke(state)
+        # Only cache if it was successful (didn't hit the fallback exception block)
+        if "Error:" not in final_state.get("insights_report", ""):
+            _insights_cache[cache_key] = final_state
 
     # Compute monthly trends for charts
     monthly_trend = {}

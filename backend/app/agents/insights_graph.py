@@ -80,12 +80,8 @@ def generate_llm_insights_node(state: InsightsState) -> InsightsState:
             state["goal_coaching"] = {}
             
     except Exception as e:
-        logger.error("Insights Generation Error: %s", e)
-        state["insights_report"] = (
-            f"Monthly Summary: Total Income: ₹{state['total_income']}, "
-            f"Total Expenses: ₹{state['total_expenses']}, "
-            f"Savings Rate: {state['savings_rate']}%."
-        )
+        logger.error(f"Insights Generation Error: {str(e)}")
+        state["insights_report"] = f"Monthly Summary: Total Income: ₹{state['total_income']}, Total Expenses: ₹{state['total_expenses']}, Savings Rate: {state['savings_rate']}%. (Error: {str(e)})"
         state["goal_coaching"] = {}
 
     return state

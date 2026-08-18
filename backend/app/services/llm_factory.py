@@ -54,7 +54,7 @@ class LLMFactory:
             model_name=model,
             temperature=temperature,
             max_tokens= max_tokens,
-            timeout=60,
+            timeout=120,
             max_retries=2, 
             callbacks=callbacks if callbacks else None
         )
