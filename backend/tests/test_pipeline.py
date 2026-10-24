@@ -73,3 +73,26 @@ def test_insights_graph_metrics():
     assert final_state["total_income"] == 3000.00
     assert final_state["total_expenses"] == 700.00
     assert final_state["savings_rate"] > 0
+
+def test_reconciliation_graph_uses_history_for_spikes():
+    """A RS.5000 Dinner is only a spike relative to the user's history, so this fails if the graph drops history"""
+    reconcile_graph = build_reconciliation_graph()
+    history = [{"amount": -300.0, 
+                "category": "Dining",
+                "raw_description": "Cafe"} for _ in range(10)]
+
+    final_state = reconcile_graph.invoke({
+        "statement_id": "test_stmt_history",
+        "raw_descriptions": [{"raw_description": "Fancy Restaurant", "amount": -5000.0, "date": "2026-08-03", "Category":"Dining"}],
+        "normalized_transactions": [],
+        "flagged_transactions": [],
+        "approved_transactions": [],
+        "existing_signatures": [],
+        "existing_historical_txs": history,
+        "current_step": "START",
+        "requires_hitl": False,
+    }) 
+    tx = final_state["normalized_transactions"][0]
+    assert tx["status"] == "FLAGGED"
+    assert "higher than your median Dining expense" in tx["anomaly_reason"]
+    

@@ -36,6 +36,7 @@ class ReconciliationState(TypedDict):
     flagged_transactions: List[TransactionItem]
     approved_transactions: List[TransactionItem]
     existing_signatures: List[str]
+    existing_historical_txs: List[Dict[str, Any]]
     current_step: str
     requires_hitl: bool
 
