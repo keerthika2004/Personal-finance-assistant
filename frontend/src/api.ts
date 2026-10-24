@@ -67,3 +67,11 @@ export const deleteTransaction = async (id: string) => {
   const response = await api.delete(`/analytics/transaction/${id}`);
   return response.data;
 };
+
+export const isDemoUser = () => {
+  try{
+    return JSON.parse(localStorage.getItem('auth_user') || 'null')?.user_id === 'demo_user';
+  }catch{
+    return false;
+  }
+};

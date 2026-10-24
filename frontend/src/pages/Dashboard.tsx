@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
 import { FULL_DEMO_SUMMARY } from '../demoData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Zap, Target, Plus, Trash2, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { api, isDemoUser } from '../api';
 
 export default function Dashboard() {
   const [summary, setSummary] = useState<any>(null);
+
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSampleData, setIsSampleData] = useState(false);
   
   // NLP Quick Add state
   const [nlpText, setNlpText] = useState('');
@@ -23,9 +26,16 @@ export default function Dashboard() {
     try {
       const res = await api.get('/analytics/summary');
       setSummary(res.data);
+      setIsSampleData(false);
+      setLoadError(null);
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
-      setSummary(FULL_DEMO_SUMMARY);
+      if(isDemoUser()) {
+        setIsSampleData(true);
+        setSummary(FULL_DEMO_SUMMARY);
+      } else {
+        setLoadError("Couldn't load your dashboard. Check your connection and try again.");
+      }
     }
   };
 
@@ -95,6 +105,15 @@ export default function Dashboard() {
     }
   };
 
+  if(loadError) {
+    return (
+      <div className='animate-slide-sup' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem', color: 'var(--text-secondary)'}}>
+        <h2>{loadError}</h2>
+        <button className='btn-primary' onClick={() => { setLoadError(null); fetchSummary(); }}>Retry</button>
+      </div>
+    );
+  }
+
   if (!summary) {
     return (
       <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem', color: 'var(--text-secondary)' }}>
@@ -140,6 +159,11 @@ export default function Dashboard() {
 
   return (
     <div className="animate-slide-up">
+      {isSampleData && (
+        <div className='glass-card' style={{ padding: '10px 16px', marginBottom: '16px', borderLeft: '4px solid #f59e0b'}}>
+          Backend unreachable. Showing sample demo data, not live results.
+        </div>
+      )}
       <h1>📊 Financial Dashboard</h1>
       <p style={{ marginBottom: '32px' }}>Overview of your financial health, forecasts, and AI-driven insights.</p>
 
@@ -289,6 +313,7 @@ export default function Dashboard() {
             {summary.goals.map((g: any, idx: number) => {
               const progress = g.target_amount > 0 ? Math.min(100, (g.current_amount / g.target_amount) * 100) : 0;
               return (
+                
                 <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', position: 'relative' }}>
                   <button onClick={() => handleDeleteGoal(g.id)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
                     <Trash2 size={18} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, deleteTransaction } from '../api';
+import { api, deleteTransaction, isDemoUser } from '../api';
 import { FULL_DEMO_SUMMARY } from '../demoData';
 import { Search, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -12,12 +12,15 @@ export default function Transactions() {
     const fetchTx = async () => {
       try {
         const res = await api.get('/analytics/summary');
-        const demoData = FULL_DEMO_SUMMARY as any;
-        setTransactions(res.data.transactions || demoData.transactions || demoData.recent_transactions || []);
+        setTransactions(res.data.transactions || []);
       } catch (err) {
         console.error(err);
-        const demoData = FULL_DEMO_SUMMARY as any;
-        setTransactions(demoData.transactions || demoData.recent_transactions || []);
+        if(isDemoUser()){
+          const demoData = FULL_DEMO_SUMMARY as any;
+          setTransactions(demoData.transactions || demoData.recent_transactions || []);
+        } else{
+          toast.error("Couldn't load your transactions");
+        }
       }
     };
     fetchTx();
@@ -28,7 +31,8 @@ export default function Transactions() {
       try {
         await deleteTransaction(id);
       } catch (err) {
-        console.warn("Backend API unreachable, removing transaction from local session state.");
+        toast.error(`Couldn't delete "${merchant}". Please try again.`);
+        return;
       }
       setTransactions(prev => prev.filter(t => t.id !== id));
       toast.success(`Transaction "${merchant}" deleted successfully!`);
