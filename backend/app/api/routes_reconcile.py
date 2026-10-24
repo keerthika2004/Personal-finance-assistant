@@ -54,10 +54,14 @@ async def get_pending_hitl_items(
 @router.post("/decision")
 async def submit_hitl_decision(
     request: HITLDecisionRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
     """Processes a user approval or rejection decision for a flagged transaction."""
-    query = await db.execute(select(Transaction).where(Transaction.id == request.transaction_id))
+    query = await db.execute(select(Transaction).where(
+        Transaction.id == request.transaction_id,
+        Transaction.user_id == user_id
+    ))
     tx = query.scalar_one_or_none()
 
     if not tx:

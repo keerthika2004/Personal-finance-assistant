@@ -187,10 +187,11 @@ class AddFundsRequest(BaseModel):
 async def add_funds_to_goal(
     goal_id: str,
     request: AddFundsRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
     """Adds funds to an existing financial goal."""
-    query = await db.execute(select(UserGoal).where(UserGoal.id == goal_id))
+    query = await db.execute(select(UserGoal).where(UserGoal.id == goal_id, UserGoal.user_id == user_id))
     goal = query.scalar_one_or_none()
     
     if not goal:
@@ -204,10 +205,11 @@ async def add_funds_to_goal(
 @router.delete("/goals/{goal_id}")
 async def delete_goal(
     goal_id: str,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
 ):
     """Deletes a specific financial goal."""
-    query = await db.execute(select(UserGoal).where(UserGoal.id == goal_id))
+    query = await db.execute(select(UserGoal).where(UserGoal.id == goal_id, UserGoal.user_id == user_id))
     goal = query.scalar_one_or_none()
     
     if not goal:
@@ -219,9 +221,9 @@ async def delete_goal(
     return {"message": "Goal deleted successfully"}
 
 @router.delete("/transaction/{transaction_id}")
-async def delete_transaction(transaction_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_transaction(transaction_id: str, db: AsyncSession = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     """Deletes a specific transaction by ID."""
-    query = await db.execute(select(Transaction).where(Transaction.id == transaction_id))
+    query = await db.execute(select(Transaction).where(Transaction.id == transaction_id, Transaction.user_id == user_id))
     tx = query.scalar_one_or_none()
     
     if not tx:
@@ -234,9 +236,9 @@ async def delete_transaction(transaction_id: str, db: AsyncSession = Depends(get
 
 
 @router.put("/transaction/{transaction_id}")
-async def update_transaction(transaction_id: str, request: TransactionUpdateRequest, db: AsyncSession = Depends(get_db)):
+async def update_transaction(transaction_id: str, request: TransactionUpdateRequest, db: AsyncSession = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     """Updates specific fields of a transaction."""
-    query = await db.execute(select(Transaction).where(Transaction.id == transaction_id))
+    query = await db.execute(select(Transaction).where(Transaction.id == transaction_id, Transaction.user_id == user_id))
     tx = query.scalar_one_or_none()
     
     if not tx:
