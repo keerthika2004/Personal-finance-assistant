@@ -265,7 +265,7 @@ async def upload_chat_transaction(
     from backend.app.services.llm_factory import LLMFactory
     from langchain_core.prompts import ChatPromptTemplate
     from datetime import datetime
-    
+    from backend.app.services.pii_redactor import PIIRedactor
     # Initialize LLM with structured output using a faster model to avoid rate limits
     llm = LLMFactory.get_llm(temperature=0.0, model_name="openai/gpt-oss-20b")
     structured_llm = llm.with_structured_output(ExtractedTransaction)
@@ -280,7 +280,7 @@ async def upload_chat_transaction(
     chain = prompt | structured_llm
     
     try:
-        res: ExtractedTransaction = chain.invoke({"text": request.text})
+        res: ExtractedTransaction = chain.invoke({"text": PIIRedactor.redact(request.text)})
     except Exception as e:
         print(f"NLP PARSING ERROR: {e}")
         import traceback

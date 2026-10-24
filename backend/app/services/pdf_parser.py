@@ -8,6 +8,7 @@ import pdfplumber
 from datetime import datetime
 from typing import List, Dict, Any
 from groq import Groq
+from backend.app.services.pii_redactor import PIIRedactor
 
 
 class StatementParser:
@@ -224,7 +225,7 @@ class StatementParser:
         
         if not ocr_text.strip():
             raise ValueError("Could not extract any text from the image using OCR.")
-
+        PIIRedactor.redact(ocr_text)
         client = Groq(api_key=groq_api_key)
         model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 

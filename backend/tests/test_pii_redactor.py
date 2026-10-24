@@ -32,3 +32,12 @@ def test_no_pii():
 def test_empty_string():
     assert PIIRedactor.redact("") == ""
     assert PIIRedactor.redact(None) is None
+
+def test_redact_indian_identifiers():
+    assert PIIRedactor.redact("Aadhaar 1234 5678 9012 on file.") == "Aadhaar [REDACTED_AADHAAR] on file."
+    assert PIIRedactor.redact("My PAN is ABCDE1234F") == "My PAN is [REDACTED_PAN]"
+    assert PIIRedactor.redact("Call +91 98765 43210") == "Call [REDACTED_PHONE]"
+    assert PIIRedactor.redact("Paid to rahul@okaxis") == "Paid to [REDACTED_UPI]"
+    assert PIIRedactor.redact("A/C 123456789012") == "A/C [REDACTED_NUMBER]"
+
+    
