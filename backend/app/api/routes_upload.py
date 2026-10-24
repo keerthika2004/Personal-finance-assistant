@@ -66,6 +66,7 @@ async def upload_statement(
         file_type = "image"
 
     stmt = Statement(
+        user_id=user_id,
         file_name=file.filename,
         file_hash=file_hash,
         file_type=file_type,
@@ -124,6 +125,7 @@ async def upload_statement(
             dt = datetime.utcnow()
 
         db_tx = Transaction(
+            user_id=user_id,
             statement_id=stmt.id,
             date=dt,
             amount=tx["amount"],
@@ -228,6 +230,7 @@ async def upload_manual_transaction(
             dt = datetime.utcnow()
 
         db_tx = Transaction(
+            user_id=user_id,
             statement_id=stmt.id,
             date=dt,
             amount=tx["amount"],

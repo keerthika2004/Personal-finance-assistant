@@ -43,7 +43,7 @@ class Statement(Base):
     __tablename__ = "statements"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String(100), nullable=False, default="demo_user", index=True)
+    user_id = Column(String(100), nullable=False, index=True)
     file_name = Column(String(255), nullable=False)
     file_hash = Column(String(64), nullable=False, unique=True)
     file_type = Column(String(10), nullable=False, default="pdf")
@@ -58,7 +58,7 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String(100), nullable=False, default="demo_user", index=True)
+    user_id = Column(String(100), nullable=False, index=True)
     account_id = Column(String(36), ForeignKey("accounts.id"), nullable=True)
     statement_id = Column(String(36), ForeignKey("statements.id"), nullable=True)
     
@@ -94,7 +94,7 @@ class UserGoal(Base):
     __tablename__ = "user_goals"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String(100), nullable=False, default="demo_user", index=True)
+    user_id = Column(String(100), nullable=False, index=True)
     goal_name = Column(String(150), nullable=False)
     target_amount = Column(Float, nullable=False)
     current_amount = Column(Float, default=0.0)
