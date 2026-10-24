@@ -18,6 +18,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Expired or invalid token: clear the session so the login modal reappears.
+// Only reload if a token was present (otherwise a guest's 401 would loop),
+// and skip /auth/* so a wrong password shows its error instead of reloading.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isAuthCall = (error.config?.url || '').startsWith('/auth/');
+    if(error.response?.status === 401 && !isAuthCall && localStorage.getItem('auth_token')){
+      //Token invalid or expired
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+)
+
 // Polyfill for file uploads
 export const uploadStatement = async (file: File) => {
   const formData = new FormData();

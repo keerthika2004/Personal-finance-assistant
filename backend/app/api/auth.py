@@ -65,11 +65,8 @@ def decode_token(token: str) -> Optional[dict]:
 
 def get_current_user_id(
     authorization: Optional[str] = Header(None),
-    x_user_id: Optional[str] = Header(None)
 ) -> str:
-    """Dependency helper to extract user_id from Authorization header or custom header."""
-    if x_user_id:
-        return x_user_id
+    """Extract user_id from a signed Bearer token. Rejects the request otherwise."""
 
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ")[1]
@@ -77,7 +74,11 @@ def get_current_user_id(
         if decoded and "user_id" in decoded:
             return decoded["user_id"]
 
-    return "demo_user"
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated. Please sign in.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 @router.post("/register")
