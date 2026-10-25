@@ -1,3 +1,4 @@
+from _plotly_utils import basevalidators
 import pytest
 from datetime import datetime
 from backend.app.services.pdf_parser import StatementParser
@@ -96,3 +97,9 @@ def test_reconciliation_graph_uses_history_for_spikes():
     assert tx["status"] == "FLAGGED"
     assert "higher than your median Dining expense" in tx["anomaly_reason"]
     
+def test_cs_parser_indian_bank_headers():
+    sample_csv = (b"Date, Narration, Value Dt, Withdrawal Amt.,Deposit Amt., Closing Balance\n"
+    b"01/08/26, SWIGGY,01/08/26,450.00,,10000.00\n" 
+    b"02/08/26, SALARY, 02/08/26,,85000.60,95000.00\n")
+    txs = StatementParser.parse_file(sample_csv, "hdfc.csv")
+    assert [t[" amount"] for t in txs] == [-450.0, 85000.0]

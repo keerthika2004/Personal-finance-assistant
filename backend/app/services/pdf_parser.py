@@ -1,3 +1,4 @@
+from pygments.lexer import words
 import io
 import re
 import os
@@ -6,9 +7,12 @@ import base64
 import pandas as pd
 import pdfplumber
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from groq import Groq
 from backend.app.services.pii_redactor import PIIRedactor
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class StatementParser:
@@ -29,16 +33,15 @@ class StatementParser:
     @staticmethod
     def _parse_csv(file_content: bytes) -> List[Dict[str, Any]]:
         df = pd.read_csv(io.BytesIO(file_content))
-        df.columns = [c.strip().lower() for c in df.columns]
+        df.columns = [str(c).strip().lower() for c in df.columns]
         
-        # Map common column names
-        date_col = next((c for c in df.columns if "date" in c), None)
-        desc_col = next((c for c in df.columns if any(k in c for k in ["desc", "merchant", "name", "payee", "details"])), None)
-        amount_col = next((c for c in df.columns if "amount" in c or "val" in c), None)
-        
-        # Support separate Credit / Debit columns if present
-        credit_col = next((c for c in df.columns if "credit" in c or "deposit" in c or "in" in c), None)
-        debit_col = next((c for c in df.columns if "debit" in c or "withdrawal" in c or "out" in c), None)
+        roles: Dict[str, str] = {}
+        for c in df.columns:
+            role = StatementParser._classify_header(c)
+            if(role and role not in roles):
+                roles[role] = c
+        date_col, desc_col = roles.get("date"), roles.get("desc")
+        amount_col, credit_col, debit_col = roles.get("amount"), roles.get("credit"), roles.get("debit")
 
         transactions = []
         for idx, row in df.iterrows():
@@ -62,6 +65,7 @@ class StatementParser:
                     "amount": amount
                 })
             except Exception as e:
+                logger.warning("Skipping CSV row %s: %s", idx, e)
                 continue
 
         return transactions
@@ -88,12 +92,12 @@ class StatementParser:
                                 header_row = row
                                 for j, cell in enumerate(row):
                                     if not cell: continue
-                                    cell_lower = str(cell).lower().replace("\n", " ")
-                                    if "date" in cell_lower and date_col == -1: date_col = j
-                                    elif any(k in cell_lower for k in ["desc", "details", "particulars", "narration", "merchant"]) and desc_col == -1: desc_col = j
-                                    elif any(k in cell_lower for k in ["debit", "withdrawal", "out"]) and debit_col == -1: debit_col = j
-                                    elif any(k in cell_lower for k in ["credit", "deposit", "in"]) and credit_col == -1: credit_col = j
-                                    elif ("amount" in cell_lower or "val" in cell_lower) and amount_col == -1 and debit_col == -1 and credit_col == -1: amount_col = j
+                                    role = StatementParser._classify_header(cell)
+                                    if role == "date" and date_col == -1: date_col = j
+                                    elif role == "desc" and desc_col == -1: desc_col = j
+                                    elif role == "debit" and debit_col == -1: debit_col = j
+                                    elif role == "credit" and credit_col == -1: credit_col = j
+                                    elif role == "amount" and amount_col == -1 and debit_col == -1 and credit_col == -1: amount_col = j
                                 break
                         
                         if date_col == -1 or desc_col == -1:
@@ -282,3 +286,25 @@ class StatementParser:
             })
 
         return transactions
+
+
+    @staticmethod
+    def _classify_header(header: str) -> Optional[str]:
+        h = str(header).strip().lower().replace("\n", " ")
+        words = set(re.findall(r"[a-z]+", h))
+        if "balance" in words:
+            return "balance"
+        if "balance" in words: 
+            return "balance"
+        if words & ("debit", "debits", "withdrawal", "withdrawals", "dr") or h in ("out", "money out", "paid out"):
+            return "debit"
+        if words & ("credit", "credits", "deposit", "deposits", "or") or h in ("in", "money in", "paid in"):
+            return "credit"
+        if words & ("date", "dt"):
+            return "date"
+        if words & ("amount", "Int", "value"):
+            return "amount"
+        if words & ("description", "desc", "details", "particulars", "narration", "merchant", "payee", "name", "remarks"):
+            return "desc"
+        return None
+
