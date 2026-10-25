@@ -1,3 +1,4 @@
+from fastapi.concurrency import run_in_threadpool
 from backend.app.services.money import to_money
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -11,9 +12,24 @@ from backend.app.api.auth import get_current_user_id
 from backend.app.agents.insights_graph import get_insights_graph
 from backend.app.services.forecasting import generate_forecast
 from datetime import datetime
+from collections import OrderedDict
+import hashlib
 import json
 
-_insights_cache = {}
+_INSIGHTS_CACHE_MAX = 256
+_insights_cache: "OrderedDict[str,dict]" = OrderedDict()
+
+def _insights_cache_key(user_id:str, tx_dicts: list, goal_dicts:list) -> str:
+    """Fingerprint everything the insights depend on, so a category edit or mew goal invalidated it"""
+    payload = json.dumps(
+        [
+            user_id,
+            sorted([t["id"],t["amount"],t["category"]] for t in tx_dicts),
+            sorted([g["id"],g["target_amount"],g["current_amount"]] for g in goal_dicts)
+        ],
+        default = str,
+    )
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics"])
 
@@ -86,14 +102,16 @@ async def get_analytics_summary(
         "goal_coaching": {}
     }
 
-    cache_key = f"{user_id}_{len(tx_dicts)}_{sum(t['amount'] for t in tx_dicts)}"
+    cache_key = _insights_cache_key(user_id,tx_dicts,goal_dicts)
     if cache_key in _insights_cache:
+        _insights_cache.move_to_end(cache_key)
         final_state = _insights_cache[cache_key]
     else:
-        final_state = insights_graph.invoke(state)
-        # Only cache if it was successful (didn't hit the fallback exception block)
+        final_state = await run_in_threadpool(insights_graph.invoke, state)
         if "Error:" not in final_state.get("insights_report", ""):
             _insights_cache[cache_key] = final_state
+            if len(_insights_cache)>_INSIGHTS_CACHE_MAX:
+                _insights_cache.popitem(last=False)
 
     # Compute monthly trends for charts
     monthly_trend = {}

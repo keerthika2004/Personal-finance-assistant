@@ -97,14 +97,14 @@ async def init_db():
                     for tx in seed_data.get('transactions', []):
                         session.add(Transaction(
                             id=tx['id'], user_id="demo_user", 
-                            date=datetime.fromisoformat(tx['date']), amount=to_money[tx['amount']], 
+                            date=datetime.fromisoformat(tx['date']), amount=to_money(tx['amount']), 
                             category=tx['category'], normalized_merchant=tx['normalized_merchant'], 
                             raw_description=tx['normalized_merchant'], status="APPROVED"
                         ))
                     for goal in seed_data.get('goals', []):
                         session.add(UserGoal(
                             id=goal['id'], user_id="demo_user", goal_name=goal['goal_name'], 
-                            target_amount=to_money[goal['target_amount']], current_amount=to_money[goal['current_amount']], 
+                            target_amount=to_money(goal['target_amount']), current_amount=to_money(goal['current_amount']), 
                             category_target=goal['category_target']
                         ))
                     await session.commit()

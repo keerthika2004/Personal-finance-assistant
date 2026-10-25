@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import logging
 from typing import Dict
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,9 @@ KEYWORD_MAPPINGS: Dict[str, str] = {
     "airtel": "Utilities",
 }
 
+_KEYWORD_PATTERNS = [
+    (re.compile(rf"(?<![a-z]){re.escape(kw)}(?![a-z])"),cat) for kw,cat in KEYWORD_MAPPINGS.items()
+]
 
 class MLCategorizer:
     _model = None
@@ -140,8 +144,8 @@ class MLCategorizer:
         desc_lower = description.strip().lower()
 
         # 1. Check direct keyword heuristic dictionary
-        for kw, cat in KEYWORD_MAPPINGS.items():
-            if kw in desc_lower:
+        for pattern, cat in _KEYWORD_PATTERNS:
+            if pattern.search(desc_lower):
                 return cat
 
         # 2. Check Scikit-Learn TF-IDF + Logistic Regression Model
