@@ -9,15 +9,15 @@
 ## TF-IDF + Logistic Regression (Local ML)
 - **Accuracy**: 0.4333
 - **Macro-F1**: 0.4480
-- **Avg Latency per tx**: 0.03 ms
+- **Avg Latency per tx**: 0.862 ms median per call (0.03 was a batch average)
 - **Approx Cost**: $0.00 (Local compute)
 
 ## Hybrid Categorizer (Production Path: PII Redaction -> Local ML -> LLM Fallback)
 - **Accuracy (Locally-handled)**: 0.9821
-- **Hybrid Micro-F1 (All 120 rows)**: 0.9423
+- **Hybrid Macro-F1 (All 120 rows)**: 0.9339
 - **Locally Handled**: 56/120 (46.7% LLM calls avoided vs LLM-only)
 - **Sent to LLM Fallback**: 64/120
-- **Local Latency per call**: median 0.851 ms, p95=1.757 ms
+- **Local Latency per call**: median 0.862 ms, p95=1.735 ms
 
 *Note: Benchmarked on a held-out test set of 120 varied transactions.*
 
@@ -29,7 +29,7 @@
 --- Evaluating Categorization ---
 ML Model Macro-F1: 0.4480
 LLM Model Macro-F1: 0.9741
-Hybrid Model Micro-F1: 0.9423
+Hybrid Model Macro-F1: 0.9339
 
 --- Evaluating Forecasting ---
 Prophet MAE: $283.23

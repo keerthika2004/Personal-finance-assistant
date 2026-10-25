@@ -160,7 +160,7 @@ def evaluate_hybrid_categorization():
     for i in sorted(fallback):
         _, hybrid_preds[i] = _llm_normalize(chain, descs[i])
     hybrid_f1 = f1_score(truths, hybrid_preds, average="macro", labels=CATEGORIES, zero_division=0)
-    print(f"Hybrid Micro F1 (all {n} rows): {hybrid_f1:.4f}")
+    print(f"Hybrid Macro F1 (all {n} rows): {hybrid_f1:.4f}")
 
 
 def evaluate_forecasting():

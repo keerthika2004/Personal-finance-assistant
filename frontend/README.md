@@ -1,67 +1,62 @@
 # Finance Assistant Frontend
 
-A modern, responsive React Single Page Application (SPA) built with Vite and TypeScript, serving as the user interface for the Personal Finance Assistant.
+A responsive React single-page application built with Vite and TypeScript, serving as the user interface for the Personal Finance Assistant.
 
 ## Folder Structure
 ```text
 frontend/
-├── public/          # Static assets
+├── public/              # Static assets (favicon, icons)
 ├── src/
-│   ├── components/  # Reusable UI components (Buttons, Layouts, Modals)
-│   ├── pages/       # Route-level components (Dashboard, BankConnect, Login)
-│   ├── services/    # API clients (e.g., api.ts using Axios)
-│   ├── store/       # Global state management
-│   ├── types/       # TypeScript interfaces and type definitions
-│   └── utils/       # Helper functions and formatters
-├── package.json     # Node dependencies and scripts
-└── vite.config.ts   # Vite bundler configuration
+│   ├── assets/          # Images used in the UI
+│   ├── components/      # Modals: AuthModal (sign in / register / demo), BankSyncModal (AA consent flow)
+│   ├── pages/           # Routes: Dashboard, Transactions, ReviewQueue, UploadPage, Chat
+│   ├── api.ts           # Axios client: base URL, auth header, 401 handling, API helpers
+│   ├── demoData.ts      # Sample data shown only to the demo account when the backend is unreachable
+│   ├── App.tsx          # Layout, sidebar, routing and auth state
+│   ├── main.tsx         # Entry point
+│   └── index.css        # Global styles and theme variables
+├── package.json         # Node dependencies and scripts
+├── vercel.json          # Vercel SPA routing
+└── vite.config.ts       # Vite bundler configuration
 ```
 
 ## Architecture Highlights
-- **Framework**: React 18 with Vite for lightning-fast HMR and optimized production builds.
-- **Styling**: Pure vanilla CSS (`index.css`) utilizing CSS variables for theme management, fluid typography, and glassmorphism design principles.
-- **Routing**: `react-router-dom` for client-side navigation without page reloads.
-- **State Management & Data Fetching**: Standard React Hooks (`useState`, `useEffect`) interfacing with a centralized `api.ts` Axios client.
-- **Data Visualization**: `recharts` for responsive, interactive charting (e.g., Cash Flow Trends, Category Breakdown).
-- **Icons**: `lucide-react` for clean, consistent SVG iconography.
+- **Framework**: React 19 with Vite for fast HMR and optimized production builds. `npm run build` type-checks with `tsc -b` before bundling.
+- **Styling**: Vanilla CSS (`index.css`) with CSS variables for theming and a glassmorphism design.
+- **Routing**: `react-router-dom` for client-side navigation.
+- **Data Fetching**: React hooks (`useState`, `useEffect`) with a central Axios client in `api.ts`.
+- **Auth Handling**: the client attaches the stored JWT to every request. If the backend rejects an expired or invalid token (401), the session is cleared and the login modal reappears. "Demo Login" requests a real signed token from the backend.
+- **Data Visualization**: `recharts` for cash-flow trends, forecasts and category breakdowns.
+- **Icons & Notifications**: `lucide-react` icons and `react-hot-toast` notifications.
 
 ## Core Features
-- **Interactive Dashboard**: Visualizes real-time financial health scores, 30-day Prophet cash-flow forecasts, and categorized spending breakdowns via Recharts.
-- **NLP Quick Add**: Integrated text field backed by LangChain to add transactions via natural language parsing.
-- **Human-in-the-Loop (HITL) Queue**: A dedicated review interface for transactions flagged by the ML anomaly detection pipeline, allowing users to resolve confidence thresholds.
-- **Smart Uploads**: Drag-and-drop interface supporting CSV, PDF, and Image (Receipt) statements.
+- **Interactive Dashboard**: financial health score, 30-day Prophet cash-flow forecast, monthly trends, category breakdown, AI coaching and savings goals.
+- **NLP Quick Add**: type something like "spent 450 on Swiggy yesterday" and the backend turns it into a transaction.
+- **Human-in-the-Loop (HITL) Queue**: review and approve or reject transactions flagged as duplicates, uncategorized, or unusual.
+- **Uploads & Bank Sync**: upload CSV, PDF or image statements, add transactions manually, or run the simulated RBI Account Aggregator sync with OTP consent.
+- **AI Advisor Chat**: ask questions about your spending; answers come from exact tool calculations on your own data.
+- **Honest fallbacks**: if the backend is unreachable, real users see an error with a Retry button. Only the demo account falls back to clearly labelled sample data.
 
 ## Local Development
 
-Ensure you have Node.js (v18+) installed.
+Requires Node.js 18+.
 
-Install dependencies:
 ```bash
-npm install
+npm install      # install dependencies
+npm run dev      # start the dev server on http://localhost:5173
+npm run build    # type-check and build for production
 ```
-
-Start the development server:
-```bash
-npm run dev
-```
-
-Build for production:
-```bash
-npm run build
-```
-
-By default, the Vite dev server will run on `http://localhost:5173`.
 
 ## Environment Variables
-Create a `.env` file in the root of this directory:
+Create `frontend/.env`:
 ```env
-VITE_API_URL=http://localhost:8000/api/v1
+VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
-*(If omitted, the API client defaults to `http://localhost:8000/api/v1`). Note: The `api.ts` Axios client automatically attaches the `Bearer` token from local storage to all authenticated requests.*
+If it's omitted, the client defaults to `http://localhost:8000/api/v1`.
 
 ## Deployment (Vercel)
-This project is pre-configured for Vercel deployment via `vercel.json` in the repository root.
-To deploy:
-1. Import the repository into Vercel.
-2. Set the `VITE_API_URL` environment variable to your production backend URL.
-3. Deploy!
+1. Import the repository into Vercel and set the project's root directory to `frontend`.
+2. Set `VITE_API_BASE_URL` to your production backend URL, including `/api/v1`.
+3. Add the Vercel URL to the backend's `ALLOWED_ORIGINS` so CORS accepts requests from it.
+4. Deploy.
+ 

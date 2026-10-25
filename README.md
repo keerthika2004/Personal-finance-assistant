@@ -5,7 +5,7 @@
 [![CI/CD Pipeline](https://github.com/keerthika2004/Personal-finance-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/keerthika2004/Personal-finance-assistant/actions)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6F00?style=flat&logo=langchain&logoColor=white)](https://langchain.com)
 [![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-Isolation_Forest-F7931E?style=flat&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
@@ -18,18 +18,18 @@
 > [!IMPORTANT]
 > ### Live Interactive Demo
 > **Try the platform live in your browser:** [**https://personal-finance-assistant-orcin.vercel.app**](https://personal-finance-assistant-orcin.vercel.app)
-> 
+> 
 >  **1-Click Recruiter Evaluation:** Click **"Demo Login"** on the sign-in modal to immediately test the populated financial dashboard, interactive cash flow forecasting, and live RBI Account Aggregator bank sync simulation with zero setup required!
 
 <br/>
 
 <div align="center">
-  <img src="assets/dashboard1.png" alt="Financial Dashboard" width="800"/>
+ <img src="assets/dashboard1.png" alt="Financial Dashboard" width="800"/>
 </div>
 
 **[Backend Documentation](backend/README.md)** | **[Frontend Documentation](frontend/README.md)**
 
-Hi there! I'm **Keerthika**, and welcome to **FinAI Assistant**! 
+Hi there! I'm **Keerthika**, and welcome to **FinAI Assistant**!
 
 I built this project to solve a real headache I faced every month: tracking expenses across multiple Indian bank accounts, credit cards, and random PDF/image receipts without spending hours typing numbers into spreadsheets.
 
@@ -39,34 +39,38 @@ I wanted an intelligent assistant that could automatically pull transactions via
 
 ## Why I Built This & Engineering Challenges
 
-When designing FinAI Assistant, I wanted to go beyond simple API wrappers and build a production-grade enterprise system:
+When designing FinAI Assistant, I wanted to go beyond simple API wrappers and build a production-grade system:
 
 1. **Why LangGraph for Agent Workflows?**  
-   Standard linear LLM chains fail when dealing with messy real-world bank statements. I built 3 stateful **LangGraph DAGs** (Parsing, Reconciliation, and Chat) so the assistant can branch dynamically, retry parsing failures, and maintain conversation state.
+  Standard linear LLM chains fail when dealing with messy real-world bank statements. I built 3 stateful **LangGraph** workflows: **Reconciliation** (normalize → deduplicate → anomaly-score → HITL branch), **Insights** (metrics → LLM coaching), and a **tool-calling Chat agent** that loops between the LLM and typed Python tools until it has an answer.
 
-2. **Why a Hybrid Anomaly Detector (Isolation Forest + Median Z-Scores)?**  
-   Rule-based thresholds break when a user's income or habits change. I combined **Scikit-Learn Isolation Forest** with **Category Median & Interquartile Range (IQR)** profiling. Using the *Median* instead of the *Mean* ensures one large ₹10,000 fine dining bill doesn't skew future baseline calculations.
+2. **Why the LLM never does the math.**  
+  The chat agent answers questions by calling typed tools (`sum_spending`, `category_breakdown`, `top_transactions`, …) that compute exact figures in pandas over the user's own transactions. The model only chooses the tool and phrases the answer, so it can't invent or miscalculate a number.
 
-3. **Privacy-First PII Redaction Layer:**  
-   Sending raw bank descriptions containing credit card numbers or phone numbers to third-party cloud LLMs is a massive security risk. I built a dedicated `PIIRedactor` service that sanitizes 16-digit card numbers, SSNs, and phone numbers via regex before any text crosses external API boundaries.
+3. **Why a Hybrid Anomaly Detector (Isolation Forest + Median/IQR)?**  
+  Rule-based thresholds break when a user's income or habits change. I combined **Scikit-Learn Isolation Forest** with per-category **Median & Interquartile Range (IQR)** profiling against the user's history. Using the *Median* instead of the *Mean* ensures one large ₹10,000 fine dining bill doesn't skew future baselines.
 
-4. **Human-in-the-Loop (HITL) Queue:**  
-   AI models shouldn't blindly make assumptions with a user's money. When the anomaly score exceeds 70% or a transaction is uncategorized, the system places it in a dedicated HITL Review Queue for one-click user confirmation.
+4. **Privacy-First PII Redaction Layer:**  
+  Sending raw bank descriptions to third-party cloud LLMs is a security risk. A dedicated `PIIRedactor` scrubs card numbers, Aadhaar, PAN, UPI IDs, emails, Indian and US phone numbers, and long account/reference numbers before any text (including OCR output and chat messages) crosses the external API boundary.
+
+5. **Human-in-the-Loop (HITL) Queue:**  
+  AI models shouldn't blindly make assumptions with a user's money. A transaction goes to the Review Queue for one-click confirmation when it's a likely duplicate, can't be categorized, or its composite anomaly score reaches 40/100.
 
 ---
 
 ## Key Features
 
-- **Multi-Tenant User Authentication**: Full JWT authentication with isolated PostgreSQL data access (`user_id` scoped) and a **1-Click Recruiter Demo Login** for instant portfolio evaluation.
-- **RBI Account Aggregator (AA) Bank Sync**: Simulated Indian Open Banking framework (HDFC, SBI, ICICI, Axis Bank) with 6-digit OTP consent verification.
-- **LangGraph Multi-Agent Workflows**:
-  - **Parsing Agent**: Multi-modal statement parsing for CSVs, PDFs, and image receipts using `Tesseract OCR`.
-  - **Reconciliation Agent**: Deduplicates entries across accounts and runs hybrid anomaly detection.
-  - **Insights & Chat Agent**: Natural language financial Q&A and spending health coaching.
+- **Multi-Tenant Authentication**: Every data endpoint requires a signed JWT; all data access is scoped to the token's `user_id`, including ownership checks on every by-ID endpoint. A **1-Click Demo Login** issues a real demo token for instant portfolio evaluation.
+- **RBI Account Aggregator (AA) Bank Sync (simulated)**: Indian Open Banking flow (HDFC, SBI, ICICI, Axis) with 6-digit OTP consent. Sessions are bound to the user, expire after 10 minutes, and lock after 5 wrong OTPs.
+- **LangGraph Workflows**:
+ - **Statement Parsing**: CSVs, PDFs (table and text layouts), and image receipts via `Tesseract OCR`, with word-based column detection for Indian bank formats (e.g. `Withdrawal Amt.`, `Value Dt`).
+ - **Reconciliation Graph**: Hybrid categorization, deduplication across uploads and bank syncs, and hybrid anomaly scoring.
+ - **Insights Graph & Chat Agent**: Spending health coaching and natural-language financial Q&A.
+- **Hybrid Categorizer**: Keyword rules and a TF-IDF (word + char n-gram) classifier handle confident cases locally; an LLM fallback handles the rest.
 - **Hybrid ML Anomaly & Fraud Engine**: Catches high-value outliers, duplicate charges, and uncategorized entries.
-- **Cash Flow Forecasting**: 30-day income and expense time-series forecasting using **Meta Prophet**.
-- **PII Regex Redaction Layer**: Sanitizes credit cards, SSNs, and phone numbers before cloud LLM inference (Groq Llama-3).
-- **GitHub Actions CI/CD Pipeline**: Automated workflow (`.github/workflows/ci.yml`) running `pytest` unit tests, evaluation benchmarks, and TypeScript typechecking on every commit.
+- **Cash Flow Forecasting**: 30-day balance forecasting using **Meta Prophet**.
+- **Exact Money Handling**: Amounts are stored as `NUMERIC(14,2)`, not floats.
+- **GitHub Actions CI/CD Pipeline**: `.github/workflows/ci.yml` runs `pytest`, the evaluation harness, and a type-checked frontend build (`tsc -b && vite build`) on every push.
 
 ---
 
@@ -96,24 +100,34 @@ When designing FinAI Assistant, I wanted to go beyond simple API wrappers and bu
 
 ---
 
-## Evaluation Benchmarks & The Hybrid Model Story
+## Evaluation Benchmarks
 
-I ran extensive evaluations on synthetic held-out test data (`eval/run_evals.py`) to measure the performance of various models.
+All numbers come from `eval/run_evals.py`, which runs in CI on every push. Full output: [`eval/eval_results.txt`](eval/eval_results.txt) and [`eval/benchmark.txt`](eval/benchmark.txt).
 
-**The Disjoint-Merchant Categorization Story**
-Categorizing transactions from *known* merchants is easy, but what happens when you visit a new cafe or use a new app? I built a hybrid ML + LLM categorizer to solve this:
-1. **Local ML Model (TF-IDF Word Features)**: Overfit to known merchants. On completely unseen merchants, it plummeted to a **0.36** Macro-F1.
-2. **Local ML Model (Word + Character n-grams)**: Adding character-level features to catch partial matches improved the score to **0.45** Macro-F1.
-3. **Zero-Shot LLM (openai/gpt-oss-120b)**: The clear winner. It achieved an astounding **0.97** Macro-F1 on completely unseen merchants by reasoning about the merchant name contextually.
+### Chat agent: 49/50 on a hand-labelled eval
+50 questions (totals, date ranges, merchant filters, counts, top-N, category breakdowns, goals) over a fixed 24-transaction dataset, with expected answers worked out by hand. The agent uses the same system prompt as the `/chat` endpoint. The one miss: asked "How many income transactions do I have?", it didn't pass the `Income` category filter to the count tool.
 
-**Conclusion**: Our system uses the ultra-fast Local ML model as a first pass, and automatically falls back to the high-accuracy Zero-Shot LLM for low-confidence or unseen merchants.
+### Hybrid categorizer on unseen merchants
+The held-out test set (`data/test.csv`, 120 rows) contains only merchants that never appear in the training data.
 
-**Cashflow Forecasting (Meta Prophet)**
-- **MASE: 0.64** (Meaning the Prophet model significantly beats a seasonal naive baseline!)
+| Approach | Macro-F1 | Notes |
+|---|---|---|
+| Local ML only (TF-IDF word + char n-grams) | 0.45 | Struggles on merchants it has never seen |
+| Zero-shot LLM only (`openai/gpt-oss-120b`) | 0.97 | Measured on a 40-row subset to limit API cost |
+| **Hybrid (production path)** | **0.94** | All 120 rows |
 
-**Anomaly Detection & Chatbot QA**
-- **Anomaly Flagging (Synthetic Data)**: F1-Score **1.00**
-- **Chatbot Tool-Calling Accuracy**: **3/3**
+The hybrid path is exactly what the app runs: PII redaction → keyword rules → shipped `categorizer.pkl` (kept only when confidence ≥ 0.35) → LLM fallback for everything else.
+
+- **47% fewer LLM calls** than LLM-only: 56 of 120 rows were handled locally, at **98.2% accuracy** on those rows.
+- **Local latency:** 0.85 ms median, 1.76 ms p95 per call.
+
+> Earlier iteration: a word-only TF-IDF model scored 0.36 Macro-F1 on unseen merchants; adding character n-grams raised it to 0.45, and adding the confidence-gated LLM fallback raised the end-to-end result to 0.94.
+
+### Forecasting (Meta Prophet)
+- **MASE 0.64** against a seasonal-naive baseline (below 1 means Prophet beats "next week looks like last week"). MAE 283 vs 415 for the baseline, on a synthetic daily cash-flow series. MAPE is not reported because the series crosses zero.
+
+### Anomaly flagging (synthetic)
+- **F1 1.00** on 48 synthetic transactions with 8 injected spikes (6–12× the category median). This is a sanity check that the rules fire as designed, not a measure of real-world fraud detection.
 
 ---
 
@@ -121,39 +135,41 @@ Categorizing transactions from *known* merchants is easy, but what happens when 
 
 ```mermaid
 graph TD
-    %% User Interfaces & Auth
-    User([User]) -->|Register / Sign In / Demo| Auth[JWT Auth & Session]
-    Auth --> UI[React + TypeScript Frontend]
-    User -->|OTP Consent & Bank Linking| AA[RBI Account Aggregator API]
-    
-    %% Backend APIs
-    AA -->|Encrypted Payload| API[FastAPI Backend]
-    UI -->|Bearer Token REST Calls| API
-    
-    %% Parsing & Processing
-    API --> ParseGraph[LangGraph: Parsing Agent]
-    ParseGraph --> OCR[Tesseract OCR]
-    ParseGraph --> ParseLLM[Llama-3 LLM via Groq]
-    
-    %% Reconciliation & ML
-    API --> ReconGraph[LangGraph: Reconciliation Agent]
-    ReconGraph --> PII[PII Redactor Layer]
-    PII --> ML[Scikit-Learn Isolation Forest & Classifier]
-    PII -.-> LLMCat[Zero-Shot LLM Categorizer Fallback]
-    ReconGraph --> Anomaly[Anomaly Scorer & Deduplication]
-    
-    %% Analytics & Forecasting
-    API --> Analytics[Analytics Engine]
-    Analytics --> Prophet[Meta Prophet Time-Series Forecaster]
-    
-    %% Chat 
-    API --> ChatGraph[LangGraph: Chat Agent]
-    
-    %% Storage & CI/CD
-    ReconGraph --> DB[(Multi-Tenant PostgreSQL + asyncpg)]
-    Analytics --> DB
-    ChatGraph --> DB
-    API -.-> CI[GitHub Actions CI/CD Pipeline]
+   %% User Interfaces & Auth
+   User([User]) -->|Register / Sign In / Demo| Auth[JWT Auth]
+   Auth --> UI[React + TypeScript Frontend]
+   User -->|OTP Consent & Bank Linking| AA[Simulated RBI Account Aggregator]
+
+   %% Backend APIs
+   AA -->|Mock bank payload| API[FastAPI Backend]
+   UI -->|Bearer Token REST Calls| API
+
+   %% Parsing
+   API --> Parser[Statement Parser: CSV / PDF / Image]
+   Parser --> OCR[Tesseract OCR]
+   OCR --> PII1[PII Redactor]
+   PII1 --> ParseLLM[gpt-oss via Groq]
+
+   %% Reconciliation & ML
+   API --> ReconGraph[LangGraph: Reconciliation]
+   ReconGraph --> PII2[PII Redactor]
+   PII2 --> ML[Keyword Rules + TF-IDF Classifier]
+   ML -.->|low confidence| LLMCat[LLM Categorizer Fallback]
+   ReconGraph --> Anomaly[Isolation Forest + Median/IQR Scorer & Dedup]
+   Anomaly -->|flagged| HITL[HITL Review Queue]
+
+   %% Analytics & Forecasting
+   API --> Insights[LangGraph: Insights]
+   API --> Prophet[Meta Prophet Forecaster]
+
+   %% Chat
+   API --> ChatGraph[LangGraph: Tool-Calling Chat Agent]
+   ChatGraph --> Tools[Typed pandas tools]
+
+   %% Storage
+   ReconGraph --> DB[(PostgreSQL, user-scoped)]
+   Insights --> DB
+   ChatGraph --> DB
 ```
 
 ---
@@ -161,11 +177,11 @@ graph TD
 ## Tech Stack
 
 - **Backend**: FastAPI, SQLAlchemy 2.0 Async (asyncpg), PostgreSQL, Pydantic, Python 3.11
-- **Frontend**: React, TypeScript, Vite, Recharts, Lucide Icons, React Hot Toast
-- **Banking Integration**: RBI Account Aggregator Framework (Setu / Open Banking APIs)
-- **AI/ML**: LangGraph, LangChain, Scikit-Learn (Isolation Forest & Logistic Regression), Meta Prophet, Tesseract OCR, Groq API (Llama 3.1 models)
-- **DevOps & CI/CD**: GitHub Actions (`.github/workflows/ci.yml`), Docker, Docker Compose, Pytest
-- **Observability**: Langfuse Tracing
+- **Frontend**: React 19, TypeScript, Vite, Recharts, Lucide Icons, React Hot Toast
+- **Banking Integration**: Simulated RBI Account Aggregator flow (production would use a Setu / Finvu sandbox)
+- **AI/ML**: LangGraph, LangChain, Scikit-Learn (Isolation Forest & Logistic Regression), Meta Prophet, Tesseract OCR, Groq API (`openai/gpt-oss-120b` for reasoning, `openai/gpt-oss-20b` for fast tasks)
+- **DevOps & CI/CD**: GitHub Actions (`.github/workflows/ci.yml`), Docker Compose, Pytest
+- **Observability**: Langfuse Tracing (optional)
 
 ---
 
@@ -175,11 +191,11 @@ graph TD
 .
 ├── backend/            # FastAPI, LangGraph agents, ML services
 ├── frontend/           # React + Vite dashboard SPA
-├── eval/               # Evaluation benchmarking scripts and results
+├── eval/               # Evaluation harness and results
 ├── scripts/            # Synthetic data generation and model training scripts
-├── data/               # Output directory for CSV datasets
+├── data/               # Training and held-out test CSVs
 ├── assets/             # README images
-└── docker-compose.yml  # Local stack orchestration
+└── docker-compose.yml  # Local Postgres + Redis
 ```
 
 ---
@@ -188,11 +204,11 @@ graph TD
 
 ### Quickstart with Docker Compose
 
-If you have Docker installed, you can spin up the entire stack (Postgres + Redis) instantly:
+Docker Compose starts the databases (Postgres, plus Redis, which is not used by the app yet):
 ```bash
 docker-compose up -d
 ```
-*(You will still need to run the backend and frontend separately for full development mode, but Docker handles the databases).*
+Compose exposes Postgres on host port **5433**, so set `DATABASE_URL` to use `localhost:5433` (see below). You still run the backend and frontend yourself.
 
 ### 1. Prerequisites
 - Python 3.10+
@@ -201,22 +217,30 @@ docker-compose up -d
 - Tesseract OCR (`brew install tesseract` or `apt-get install tesseract-ocr`)
 
 ### 2. Environment Setup
-Create a `.env` file in `backend/` using the `.env.example` file:
+Create `backend/.env` from `backend/.env.example`:
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5432/financial_ai_db
+# Use port 5433 with docker-compose, 5432 for a local Postgres install
+DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5433/financial_ai_db
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-120b
 GROQ_FAST_MODEL=openai/gpt-oss-20b
-JWT_SECRET_KEY=change-me-to-a-long-random-string
+JWT_SECRET_KEY=<generate one, see below>
+ALLOWED_ORIGINS=http://localhost:5173
+```
+`JWT_SECRET_KEY` is **required**: the backend refuses to start without it, or with the placeholder value. Generate one with:
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
 ### 3. Backend Setup
+Run from the repository root:
 ```bash
 python -m venv venv
 source venv/bin/activate
 pip install -r backend/requirements.txt
 python -m uvicorn backend.app.main:app --reload --port 8000
 ```
+API docs are served at `http://localhost:8000/docs`.
 
 ### 4. Frontend Setup
 ```bash
@@ -235,16 +259,20 @@ Run unit tests:
 PYTHONPATH=. pytest backend/tests
 ```
 
-Run evaluation benchmarking suite:
+Run the evaluation suite and save the results (the chat and LLM evals need `GROQ_API_KEY`; they are skipped without it):
 ```bash
-PYTHONPATH=. python eval/run_evals.py
+PYTHONPATH=. python eval/run_evals.py > eval/eval_results.txt
 ```
 
 ---
 
 ## Roadmap & Known Limitations
-- **Data Integrations**: Currently simulates RBI Account Aggregator. Production requires a live Setu/Finvu sandbox key.
-- **Multi-currency**: Currently assumes a base currency (INR/USD) globally. No live FX conversions yet.
+- **Data Integrations**: The RBI Account Aggregator flow is simulated with mock bank payloads. Production requires a live Setu/Finvu sandbox key.
+- **AA sessions are in memory**: Fine for a single server instance; multiple workers or restarts need a shared store such as Redis.
+- **LLM fallback reliability**: In the latest eval, 2 of 64 fallback calls failed with a Groq structured-output error and were left as "Uncategorized" (they still count in the 0.94).
+- **Chat is single-turn**: The agent doesn't remember earlier messages in a conversation.
+- **Auth token storage**: The JWT lives in `localStorage`; moving it to an httpOnly cookie would harden it against XSS.
+- **Multi-currency**: Assumes a single base currency (INR). No live FX conversions yet.
 - **Budgeting**: Alert triggers for crossing custom budget thresholds are planned.
 
 ---
@@ -254,3 +282,4 @@ Built by **Keerthika**. I'm passionate about the intersection of AI, agentic arc
 
 ## License
 MIT License
+ 
