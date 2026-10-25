@@ -1,3 +1,4 @@
+from langgraph.runtime import Runtime
 import os
 import time
 import jwt
@@ -16,7 +17,13 @@ load_dotenv("backend/.env")
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback-secret-key-for-dev")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+if not SECRET_KEY or SECRET_KEY == "change-me-to-a-long-random-string":
+    raise RuntimeError(
+        "JWT_SECRET_KEY is not set. Add a long random value to backend/.env, e.g."
+        "python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+    )
+TOKEN_TTL_SECONDS = 24*3600
 ALGORITHM = "HS256"
 
 
@@ -48,7 +55,7 @@ def create_token(user_id: str, email: str, name: str) -> str:
         "user_id": user_id,
         "email": email,
         "name": name,
-        "exp": int(time.time()) + (30 * 24 * 3600)  # 30 days
+        "exp": int(time.time()) + TOKEN_TTL_SECONDS
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -87,8 +94,8 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
     
     if not email_clean or "@" not in email_clean:
         raise HTTPException(status_code=400, detail="Please enter a valid email address.")
-    if len(request.password) < 4:
-        raise HTTPException(status_code=400, detail="Password must be at least 4 characters long.")
+    if len(request.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long.")
 
     # Check if user already exists
     query = await db.execute(select(User).where(User.email == email_clean))
