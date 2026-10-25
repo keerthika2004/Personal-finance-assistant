@@ -1,4 +1,4 @@
-import random
+import secrets
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional
@@ -16,7 +16,23 @@ router = APIRouter(prefix="/api/v1/bank-sync", tags=["Bank Sync"])
 
 # In-memory session store for AA Sandbox sessions
 sessions = {}
+SESSION_TTL = timedelta(minutes=10)
+MAX_OTP_ATTEMPTS = 5
 
+def purge_expired_sessions():
+    now = datetime.utcnow()
+    for sid in [s for s, v in sessions.items() if now - v["created_at"] > SESSION_TTL]:
+        sessions.pop(sid, None)
+
+def _get_session(session_id: str, user_id: str) -> dict:
+    """Return the caller's live session, or 404. Sessions belong to the user who started them."""
+    session = sessions.get(session_id)
+    if session and datetime.utcnow() - session["created_at"] > SESSION_TTL:
+        sessions.pop(session_id, None)
+        session = None
+    if not session or session["user_id"] != user_id:
+        raise HTTPException(status_code=404, detail="Invalid or expired sync session.")
+    return session
 
 class InitiateSyncRequest(BaseModel):
     bank_id: str
@@ -86,13 +102,14 @@ MOCK_BANK_PAYLOADS = {
 
 
 @router.post("/initiate")
-async def initiate_consent(req: InitiateSyncRequest):
+async def initiate_consent(req: InitiateSyncRequest, user_id: str = Depends(get_current_user_id)):
     """Initiates an Account Aggregator (AA) consent request for the selected bank."""
+    purge_expired_sessions()
     if len(req.phone_number) < 10:
         raise HTTPException(status_code=400, detail="Invalid 10-digit Indian phone number.")
 
     session_id = f"aa_session_{uuid.uuid4().hex[:8]}"
-    generated_otp = str(random.randint(100000, 999999))
+    generated_otp = f"{secrets.randbelow(1_000_000):06d}"
     
     sessions[session_id] = {
         "bank_id": req.bank_id,
@@ -100,35 +117,32 @@ async def initiate_consent(req: InitiateSyncRequest):
         "phone_number": req.phone_number,
         "otp": generated_otp,
         "verified": False,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "user_id": user_id,
+        "attempts": 0
     }
 
     return {
         "status": "success",
         "message": f"Consent request initiated with {req.bank_name} via RBI Account Aggregator.",
         "session_id": session_id,
+        #sandbox only: a real AA flow never returns the OTP to the client
         "preview_otp": generated_otp,
         "phone_number": req.phone_number
     }
 
 
 @router.post("/verify-otp")
-async def verify_otp(req: VerifyOTPRequest):
+async def verify_otp(req: VerifyOTPRequest, user_id:str=Depends(get_current_user_id)):
     """Verifies the Account Aggregator consent OTP."""
-    session = sessions.get(req.session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Invalid or expired sync session.")
-
-    # Accept either generated OTP or universal testing OTP '123456'
-    if req.otp != session["otp"] and req.otp != "123456":
-        raise HTTPException(status_code=400, detail="Invalid OTP code. Please try again.")
-
-    session["verified"] = True
-    return {
-        "status": "success",
-        "message": f"Account Aggregator consent approved for {session['bank_name']}.",
-        "session_id": req.session_id
-    }
+    session = sessions.get(req.session_id, user_id)
+    if not secrets.compare_digest(req.otp.encode(), session["otp"].encode()):
+        session["attempts"] += 1
+        if session["attempts"] >= MAX_OTP_ATTEMPTS:
+            sessions.pop(req.session_id,None)
+            raise HTTPException(status_code=429,detail="Too many incorrect OTP attempts. Please start again.")
+        raise HTTPException(status_code=400, detail="Incorrect OTP. Please try again")
+            
 
 
 @router.post("/sync")
@@ -138,8 +152,8 @@ async def trigger_bank_sync(
     user_id: str = Depends(get_current_user_id)
 ):
     """Fetches live transactions from the bank via Account Aggregator and runs them through the Reconciliation pipeline."""
-    session = sessions.get(req.session_id)
-    if not session or not session.get("verified"):
+    session = _get_session(req.session_id, user_id)
+    if not session.get("verified"):
         raise HTTPException(status_code=400, detail="Unapproved or invalid Account Aggregator session.")
 
     bank_id = session["bank_id"].lower()
