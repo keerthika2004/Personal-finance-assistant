@@ -12,6 +12,13 @@
 - **Avg Latency per tx**: 0.03 ms
 - **Approx Cost**: $0.00 (Local compute)
 
+## Hybrid Categorizer (Production Path: PII Redaction -> Local ML -> LLM Fallback)
+- **Accuracy (Locally-handled)**: 0.9821
+- **Hybrid Micro-F1 (All 120 rows)**: 0.9423
+- **Locally Handled**: 56/120 (46.7% LLM calls avoided vs LLM-only)
+- **Sent to LLM Fallback**: 64/120
+- **Local Latency per call**: median 0.851 ms, p95=1.757 ms
+
 *Note: Benchmarked on a held-out test set of 120 varied transactions.*
 
 ## Cashflow Forecasting (Prophet)
@@ -22,6 +29,7 @@
 --- Evaluating Categorization ---
 ML Model Macro-F1: 0.4480
 LLM Model Macro-F1: 0.9741
+Hybrid Model Micro-F1: 0.9423
 
 --- Evaluating Forecasting ---
 Prophet MAE: $283.23
@@ -35,7 +43,7 @@ Anomaly F1: 1.00
 *(Note: tested on synthetic labeled set n=48, positives=8)*
 
 --- Evaluating Chatbot QA ---
-Chatbot Accuracy: 3/3 (100.0%)
-*Note: Evaluated using `openai/gpt-oss-120b`. The model successfully executed tool calls across all queries after adjusting the `top_transactions` tool parameter schema to accept string integers.*
+Chatbot Accuracy: 49/50 (98.0%)
+*Note: Evaluated across 50 hand-labelled single-tool questions using `openai/gpt-oss-120b` against a fixed 24-transaction and 2-goal dataset.*
 
 Eval complete. All calls traced in Langfuse if configured.

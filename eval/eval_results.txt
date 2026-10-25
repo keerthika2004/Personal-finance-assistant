@@ -43,6 +43,15 @@ labels: ['Dining', 'Entertainment', 'Groceries', 'Healthcare', 'Housing', 'Incom
 Local ML Macro-F1:  0.4480
 LLM Macro-F1: 0.9741
 
+--- Evaluating Hybrid Categorizer (production path, held-out set) ---
+n=120 handled locally: 56 sent to LLM: 64
+LLM calls avoided vs LLM-only: 46.7%
+Local latency per call: median 0.851 ms, p95=1.757 ms
+Accuracy on locally-handled rows: 0.9821
+LLM normalization failed for a transaction: Error code: 400 - {'error': {'message': 'Tool choice is required, but model did not call a tool', 'type': 'invalid_request_error', 'code': 'tool_use_failed', 'failed_generation': ''}}
+LLM normalization failed for a transaction: Error code: 400 - {'error': {'message': 'Tool choice is required, but model did not call a tool', 'type': 'invalid_request_error', 'code': 'tool_use_failed', 'failed_generation': ''}}
+Hybrid Micro F1 (all 120 rows): 0.9423
+
 --- Evaluating Forecasting ---
 Prophet MAE: $ 283.23 SMAPE: 196.0% MASE: 0.64
 Naive MAE: $414.58
@@ -55,13 +64,131 @@ Precision: 1.00   Recall: 1.00   F1: 1.00
 [[40  0]
  [ 0  8]]
 
---- Evaluating Chatbot QA (tool-calling agent) ---
-[PASS] How much did I spend at Starbucks in total? (expected 10.00)
-   -> You’ve spent a total of **Rs 10.00** at Starbucks.
-[PASS] What was my single largest expense? (expected 150.00)
-   -> Your single largest expense was **Rs 150.00** on **2024‑01‑02** for **Shopping**.
-[PASS] How many transactions do I have? (expected 3)
-   -> You have a total of **3 transactions**.
-Chatbot accuracy: 3/3
+--- Evaluating Chatbot QA (tool-calling agent, 50 hand-labelled questions) ---
+[PASS] How much did I spend in total? (expected 68567)
+   -> You’ve spent a total of **Rs 68,567.00**.
+[PASS] How much have I spent on Dining overall? (expected 2500)
+   -> You’ve spent a total of **Rs 2,500.00** on Dining.
+[PASS] What's my total Groceries spending? (expected 6500)
+   -> Your total spending on Groceries is Rs 6,500.00.
+[PASS] How much did I spend on Transportation? (expected 970)
+   -> You spent **Rs 970.00** on Transportation.
+[PASS] How much went to Subscriptions? (expected 1947)
+   -> Your total spending on Subscriptions is **Rs 1,947.00**.
+[PASS] How much have I spent on Housing? (expected 45000)
+   -> You’ve spent **Rs 45,000** on Housing.
+[PASS] What's my total Shopping spend? (expected 8600)
+   -> Your total Shopping spending is Rs 8,600.00.
+[PASS] How much did I spend on Healthcare? (expected 1200)
+   -> You spent Rs 1,200.00 on Healthcare.
+[PASS] How much did I spend on Utilities? (expected 1850)
+   -> You spent **Rs 1,850.00** on Utilities.
+[PASS] How much did I spend at Swiggy? (expected 1700)
+   -> You’ve spent a total of **Rs 1,700.00** on Swiggy.
+[PASS] How much have I spent on Uber? (expected 970)
+   -> You’ve spent Rs 970.00 on Uber.
+[PASS] How much did I spend at Amazon? (expected 8600)
+   -> You spent Rs 8,600 at Amazon.
+[PASS] How much have I paid Netflix in total? (expected 1947)
+   -> You’ve spent a total of Rs 1,947.00 on Netflix.
+[PASS] How much did I spend at BigBasket? (expected 6500)
+   -> You spent Rs 6,500 at BigBasket.
+[PASS] How much did I spend at Zomato? (expected 800)
+   -> You spent Rs 800.00 at Zomato.
+[PASS] How much did I spend at Apollo Pharmacy? (expected 1200)
+   -> You spent Rs 1,200.00 at Apollo Pharmacy.
+[PASS] What was my total spending in January 2024? (expected 22349)
+   -> Your total spending in January 2024 was **Rs 22,349.00**.
+[PASS] What was my total spending in February 2024? (expected 19699)
+   -> Your total spending in February 2024 was **Rs 19,699**.
+[PASS] What was my total spending in March 2024? (expected 26519)
+   -> Your total spending in March 2024 was **Rs 26,519**.
+[PASS] How much did I spend on Dining in January 2024? (expected 1000)
+   -> You spent Rs 1,000.00 on Dining in January 2024.
+[PASS] How much did I spend on Groceries in March 2024? (expected 2500)
+   -> You spent **Rs 2,500.00** on groceries in March 2024.
+[PASS] How much did I spend on Shopping in March 2024? (expected 5400)
+   -> You spent **Rs 5,400.00** on Shopping in March 2024.
+[PASS] How much did I spend at Swiggy in March 2024? (expected 700)
+   -> You spent Rs 700.00 on Swiggy in March 2024.
+[PASS] How much did I spend between 2024-01-01 and 2024-01-15? (expected 18599)
+   -> You spent Rs 18,599.00 between 2024‑01‑01 and 2024‑01‑15.
+[PASS] How much did I spend on Transportation in February 2024? (expected 250)
+   -> You spent Rs 250.00 on Transportation in February 2024.
+[PASS] What is my total income? (expected 162000)
+   -> Your total income is **Rs 162,000**.
+[PASS] How much income did I receive in February 2024? (expected 62000)
+   -> You received Rs 62,000 in income during February 2024.
+[PASS] How much income did I receive in January 2024? (expected 50000)
+   -> You received Rs 50,000 in income during January 2024.
+[PASS] How much income did I get in March 2024? (expected 50000)
+   -> Your total income for March 2024 was Rs 50,000.00.
+[PASS] How much income did I receive between 2024-02-10 and 2024-02-28? (expected 12000)
+   -> You received Rs 12,000 in income between 2024‑02‑10 and 2024‑02‑28.
+[PASS] How many transactions do I have? (expected 24)
+   -> You have 24 transactions.
+[PASS] How many Dining transactions do I have? (expected 4)
+   -> You have 4 Dining transactions.
+[PASS] How many times did I order from Swiggy? (expected 3)
+   -> You ordered from Swiggy 3 times.
+[PASS] How many transactions did I make in February 2024? (expected 8)
+   -> You made 8 transactions in February 2024.
+[PASS] How many Uber rides did I take? (expected 3)
+   -> You took 3 Uber rides.
+[FAIL] How many income transactions do I have? (expected 4)
+   -> I’m sorry, but I don’t have information on the number of income transactions.
+[PASS] How many Shopping transactions do I have? (expected 2)
+   -> You have 2 Shopping transactions.
+[PASS] What was my single largest expense? (expected 15000)
+   -> Your single largest expense was the rent payment of **Rs 15,000** on 2024‑03‑15.
+[PASS] What was my largest Shopping expense? (expected 5400)
+   -> Your largest Shopping expense was Rs 5,400.00 for an Amazon purchase on 2024‑03‑20.
+[PASS] What are my top 2 Shopping expenses? (expected 5400, 3200)
+   -> Your top 2 Shopping expenses are:
+
+- Rs 5,400 on 20 Mar 2024 (Amazon)  
+- Rs 3,200 on 25 Jan 2024 (Amazon)
+[PASS] What are my top 3 Groceries expenses? (expected 2500, 2200, 1800)
+   -> Your top 3 grocery expenses are:
+
+1. **Mar 6 2024** – BigBasket – **Rs 2,500**
+2. **Jan 5 2024** – BigBasket – **Rs 2,200**
+3. **Feb 7 2024** – BigBasket – **Rs 1,800**
+[PASS] What was my largest Dining expense? (expected 800)
+   -> Your largest Dining expense was Rs 800.00 at Zomato on 2024‑02‑04.
+[PASS] What was my largest income transaction? (expected 50000)
+   -> Your largest income transaction was a salary payment of **Rs 50,000** from Acme Corp on 2024‑01‑01.
+[PASS] What was my largest Transportation expense? (expected 420)
+   -> Your largest Transportation expense was Rs 420.00 for an Uber ride on 2024‑03‑28.
+[PASS] What are my top 2 Dining expenses? (expected 800, 700)
+   -> Your top 2 Dining expenses are:
+
+- **Zomato** – Rs 800.00 (2024‑02‑04)  
+- **Swiggy** – Rs 700.00 (2024‑03‑03)
+[PASS] Give me my spending breakdown by category for February 2024. (expected 15000, 1800, 1200, 800, 649, 250)
+   -> Here’s your spending breakdown for February 2024:
+
+- Housing: Rs 15,000.00  
+- Groceries: Rs 1,800.00  
+- Healthcare: Rs 1,200.00  
+- Dining: Rs 800.00  
+- Subscriptions: Rs 649.00  
+- Transportation:
+[PASS] Give me my spending breakdown by category for March 2024. (expected 15000, 5400, 2500, 1850, 700, 649, 420)
+   -> Here’s your March 2024 spending by category:
+
+- Housing: Rs 15,000.00  
+- Shopping: Rs 5,400.00  
+- Groceries: Rs 2,500.00  
+- Utilities: Rs 1,850.00  
+- Dining: Rs 700.00  
+- Subscriptions: Rs 649.00
+[PASS] Which category did I spend the most on overall? (expected Housing)
+   -> Your highest‑spending category overall is **Housing**, with total expenses of **Rs 45,000**.
+[PASS] How much have I saved toward my Emergency Fund goal? (expected 25000)
+   -> You’ve saved Rs 25,000 toward your Emergency Fund goal.
+[PASS] What is the target amount for my Goa Trip goal? (expected 30000)
+   -> The target amount for your Goa Trip goal is **Rs 30,000**.
+Chatbot accuracy: 49/50 (errors: 0)
 
 Eval complete. All calls traced in Langfuse if configured.

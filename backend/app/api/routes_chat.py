@@ -9,7 +9,7 @@ from langchain_core.messages import HumanMessage
 from backend.app.db.database import get_db
 from backend.app.db.models import Transaction, UserGoal
 from backend.app.api.auth import get_current_user_id
-from backend.app.agents.chat_graph import build_chat_agent
+from backend.app.agents.chat_graph import build_chat_agent, SYSTEM_TEMPLATE
 from backend.app.agents.finance_tools import build_finance_tools
 from backend.app.services.pii_redactor import PIIRedactor
 
@@ -19,15 +19,7 @@ router = APIRouter(prefix="/api/v1/chat", tags=["Financial Chat Agent"])
 class ChatQueryRequest(BaseModel):
     message: str
 
-SYSTEM_TEMPLATE = (
-    "You are a precise AI personal finance assistant. Today's date is {today}.\n"
-    "You have tools that query the user's ACTUAL transaction data.\n"
-    "ALWAYS call a tool to get exact figures - NEVER estimate or invent numbers.\n"
-    "If a tool returns no data, tell the user you don't have that information.\n"
-    "Only answer questions about the user's personal finances; politely decline anything else.\n"
-    "Amounts are in Indian Rupees (Rs). Be concise."
-)
-
+        
 @router.post("")
 async def query_financial_agent(
     request: ChatQueryRequest,

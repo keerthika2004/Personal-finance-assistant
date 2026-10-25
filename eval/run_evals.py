@@ -1,6 +1,8 @@
 import sys
 import os
 from pathlib import Path
+import time
+import statistics
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -81,14 +83,14 @@ def evaluate_categorization():
     print("labels:", labels)
     print(cm)
 
-    llm_f1 = evaluate_11m_categorization(list(X_test), list(y_test))
+    llm_f1 = evaluate_llm_categorization(list(X_test), list(y_test))
     print ("\n== Categorization summary ==")
     print(f"Local ML Macro-F1: {f1: .4f}")
     print (f"LLM Macro-F1: {llm_f1 if llm_f1 is not None else 'skipped (no GROQ key)'}")
     return f1, llm_f1
    
     
-def evaluate_11m_categorization(descriptions, truths, sample_cap=40):
+def evaluate_llm_categorization(descriptions, truths, sample_cap=40):
     """Fills in the LLM baseline the old harness skipped. Capped for cost."""
     if not os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") == "your_groq_api_key_here":
         return None
@@ -117,6 +119,49 @@ def evaluate_11m_categorization(descriptions, truths, sample_cap=40):
     except Exception as e:
         print(f"LLM categorization eval failed: {e}")
         return None
+
+def evaluate_hybrid_categorization():
+    """Runs the production categorizer path over the held-out set of unseen merchants:
+    PII redaction -> keyword rules -> shipped categorizer.pkl (0.35 confidence threshold) -> LLM fallback"""
+    print("\n--- Evaluating Hybrid Categorizer (production path, held-out set) ---")
+    from backend.app.services.categorizer import MLCategorizer, normalize_category
+    from backend.app.services.pii_redactor import PIIRedactor
+
+    test_df = pd.read_csv("data/test.csv")
+    descs = [PIIRedactor.redact(d) for d in test_df["description"]]
+    truths = list(test_df["category"])
+    n = len(descs)
+
+    #Warm-up call loads the pickle so it isn't counted in latency
+    MLCategorizer.predict_category(descs[0])
+
+    local_preds, latencies_ms = [], []
+    for d in descs:
+        start = time.perf_counter()
+        local_preds.append(normalize_category(MLCategorizer.predict_category(d)))
+        latencies_ms.append(1000*(time.perf_counter() - start))
+    #same rule as normalize_and_categorize_node: "Uncategorized" from the local path triggers the LLM
+    fallback = {i for i, p in enumerate(local_preds) if p == "Uncategorized"}
+    handled = [i for i in range(n) if i not in fallback]
+    
+    print(f"n={n} handled locally: {len(handled)} sent to LLM: {len(fallback)}")
+    print(f"LLM calls avoided vs LLM-only: {len(handled)/n*100:.1f}%")
+    print(f"Local latency per call: median {statistics.median(latencies_ms):.3f} ms, p95={np.percentile(latencies_ms,95):.3f} ms")
+    if handled:
+        acc = sum(local_preds[i] == truths[i] for i in handled)/len(handled)
+        print(f"Accuracy on locally-handled rows: {acc:.4f}")
+    if not os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") == "your_groq_api_key_here":
+        print("Hybrid Macro-F1: skipped (no GROQ key)")
+        return
+    
+    from backend.app.agents.reconciliation_graph import build_normalizer_chain, _llm_normalize
+    chain = build_normalizer_chain()
+    hybrid_preds = list(local_preds)
+    for i in sorted(fallback):
+        _, hybrid_preds[i] = _llm_normalize(chain, descs[i])
+    hybrid_f1 = f1_score(truths, hybrid_preds, average="macro", labels=CATEGORIES, zero_division=0)
+    print(f"Hybrid Micro F1 (all {n} rows): {hybrid_f1:.4f}")
+
 
 def evaluate_forecasting():
     print("\n--- Evaluating Forecasting ---")
@@ -196,48 +241,146 @@ def _numeric_hit(expected, ans):
             continue
     return False 
 
-def evaluate_chatbot():
-    print("\n--- Evaluating Chatbot QA (tool-calling agent) ---")
-    from datetime import date
-    from langchain_core.messages import HumanMessage
-    from backend.app.agents.chat_graph import build_chat_agent
-    from backend.app.agents.finance_tools import build_finance_tools
 
-    txs = [
-        {"date": "2024-01-01", "normalized_merchant": "Starbucks", "amount": -5.50, "category": "Dining"},
-        {"date": "2024-01-01", "normalized_merchant": "Starbucks", "amount": -4.50, "category": "Dining"},
-        {"date": "2024-01-02", "normalized_merchant": "Target", "amount": -150.00, "category": "Shopping"}
-    ]
+# Fixed dataset for the chat eval. Expected answers below were worked out by hand from this table,
+# not computed with the same pandas code the tools use.
+CHAT_EVAL_TXS = [
+   {"date": "2024-01-01", "normalized_merchant": "Acme Corp Salary", "amount": 50000.00, "category": "Income"},
+   {"date": "2024-01-03", "normalized_merchant": "Swiggy", "amount": -450.00, "category": "Dining"},
+   {"date": "2024-01-05", "normalized_merchant": "BigBasket", "amount": -2200.00, "category": "Groceries"},
+   {"date": "2024-01-08", "normalized_merchant": "Uber", "amount": -300.00, "category": "Transportation"},
+   {"date": "2024-01-10", "normalized_merchant": "Netflix", "amount": -649.00, "category": "Subscriptions"},
+   {"date": "2024-01-15", "normalized_merchant": "Landlord Rent", "amount": -15000.00, "category": "Housing"},
+   {"date": "2024-01-20", "normalized_merchant": "Swiggy", "amount": -550.00, "category": "Dining"},
+   {"date": "2024-01-25", "normalized_merchant": "Amazon", "amount": -3200.00, "category": "Shopping"},
+   {"date": "2024-02-01", "normalized_merchant": "Acme Corp Salary", "amount": 50000.00, "category": "Income"},
+   {"date": "2024-02-04", "normalized_merchant": "Zomato", "amount": -800.00, "category": "Dining"},
+   {"date": "2024-02-07", "normalized_merchant": "BigBasket", "amount": -1800.00, "category": "Groceries"},
+   {"date": "2024-02-10", "normalized_merchant": "Netflix", "amount": -649.00, "category": "Subscriptions"},
+   {"date": "2024-02-12", "normalized_merchant": "Uber", "amount": -250.00, "category": "Transportation"},
+   {"date": "2024-02-15", "normalized_merchant": "Landlord Rent", "amount": -15000.00, "category": "Housing"},
+   {"date": "2024-02-18", "normalized_merchant": "Apollo Pharmacy", "amount": -1200.00, "category": "Healthcare"},
+   {"date": "2024-02-22", "normalized_merchant": "Freelance Project", "amount": 12000.00, "category": "Income"},
+   {"date": "2024-03-01", "normalized_merchant": "Acme Corp Salary", "amount": 50000.00, "category": "Income"},
+   {"date": "2024-03-03", "normalized_merchant": "Swiggy", "amount": -700.00, "category": "Dining"},
+   {"date": "2024-03-06", "normalized_merchant": "BigBasket", "amount": -2500.00, "category": "Groceries"},
+   {"date": "2024-03-10", "normalized_merchant": "Netflix", "amount": -649.00, "category": "Subscriptions"},
+   {"date": "2024-03-15", "normalized_merchant": "Landlord Rent", "amount": -15000.00, "category": "Housing"},
+   {"date": "2024-03-20", "normalized_merchant": "Amazon", "amount": -5400.00, "category": "Shopping"},
+   {"date": "2024-03-25", "normalized_merchant": "BESCOM Electricity", "amount": -1850.00, "category": "Utilities"},
+   {"date": "2024-03-28", "normalized_merchant": "Uber", "amount": -420.00, "category": "Transportation"},
+]
+CHAT_EVAL_GOALS = [
+   {"goal_name": "Emergency Fund", "target_amount": 100000.0, "current_amount": 25000.0},
+   {"goal_name": "Goa Trip", "target_amount": 30000.0, "current_amount": 8000.0},
+]
+# Every expected item must appear in the answer. Numbers are matched numerically, words as substrings.
+# Only single-tool questions: anything needing the LLM to add/subtract results is excluded on purpose.
+CHAT_EVAL_CASES = [
+   # Spending totals
+   ("How much did I spend in total?", ["68567"]),
+   ("How much have I spent on Dining overall?", ["2500"]),
+   ("What's my total Groceries spending?", ["6500"]),
+   ("How much did I spend on Transportation?", ["970"]),
+   ("How much went to Subscriptions?", ["1947"]),
+   ("How much have I spent on Housing?", ["45000"]),
+   ("What's my total Shopping spend?", ["8600"]),
+   ("How much did I spend on Healthcare?", ["1200"]),
+   ("How much did I spend on Utilities?", ["1850"]),
+   ("How much did I spend at Swiggy?", ["1700"]),
+   ("How much have I spent on Uber?", ["970"]),
+   ("How much did I spend at Amazon?", ["8600"]),
+   ("How much have I paid Netflix in total?", ["1947"]),
+   ("How much did I spend at BigBasket?", ["6500"]),
+   ("How much did I spend at Zomato?", ["800"]),
+   ("How much did I spend at Apollo Pharmacy?", ["1200"]),
+   # Date-scoped spending
+   ("What was my total spending in January 2024?", ["22349"]),
+   ("What was my total spending in February 2024?", ["19699"]),
+   ("What was my total spending in March 2024?", ["26519"]),
+   ("How much did I spend on Dining in January 2024?", ["1000"]),
+   ("How much did I spend on Groceries in March 2024?", ["2500"]),
+   ("How much did I spend on Shopping in March 2024?", ["5400"]),
+   ("How much did I spend at Swiggy in March 2024?", ["700"]),
+   ("How much did I spend between 2024-01-01 and 2024-01-15?", ["18599"]),
+   ("How much did I spend on Transportation in February 2024?", ["250"]),
+   # Income
+   ("What is my total income?", ["162000"]),
+   ("How much income did I receive in February 2024?", ["62000"]),
+   ("How much income did I receive in January 2024?", ["50000"]),
+   ("How much income did I get in March 2024?", ["50000"]),
+   ("How much income did I receive between 2024-02-10 and 2024-02-28?", ["12000"]),
+   # Counts
+   ("How many transactions do I have?", ["24"]),
+   ("How many Dining transactions do I have?", ["4"]),
+   ("How many times did I order from Swiggy?", ["3"]),
+   ("How many transactions did I make in February 2024?", ["8"]),
+   ("How many Uber rides did I take?", ["3"]),
+   ("How many income transactions do I have?", ["4"]),
+   ("How many Shopping transactions do I have?", ["2"]),
+   # Largest / top-N
+   ("What was my single largest expense?", ["15000"]),
+   ("What was my largest Shopping expense?", ["5400"]),
+   ("What are my top 2 Shopping expenses?", ["5400", "3200"]),
+   ("What are my top 3 Groceries expenses?", ["2500", "2200", "1800"]),
+   ("What was my largest Dining expense?", ["800"]),
+   ("What was my largest income transaction?", ["50000"]),
+   ("What was my largest Transportation expense?", ["420"]),
+   ("What are my top 2 Dining expenses?", ["800", "700"]),
+   # Breakdowns
+   ("Give me my spending breakdown by category for February 2024.", ["15000", "1800", "1200", "800", "649", "250"]),
+   ("Give me my spending breakdown by category for March 2024.", ["15000", "5400", "2500", "1850", "700", "649", "420"]),
+   ("Which category did I spend the most on overall?", ["Housing"]),
+   # Goals
+   ("How much have I saved toward my Emergency Fund goal?", ["25000"]),
+   ("What is the target amount for my Goa Trip goal?", ["30000"]),
+]
 
-    agent = build_chat_agent(
-        build_finance_tools(txs, []),
-        f"You are a precise finance assistant. Today is {date.today().isoformat()}. "
-        f"Always call a tool for exact numbers; never invent numbers.",
-    )
 
-    cases = [
-        ("How much did I spend at Starbucks in total?", "10.00"),
-        ("What was my single largest expense?", "150.00"),
-        ("How many transactions do I have?", "3"),
-    ]
-    correct = 0
-    for q, expected in cases:
-        try:
-            res = agent.invoke(
-                {"messages": [HumanMessage(content=q)]},
-                config={"recursion_limit": 8}
-            )
-            ans = res["messages"][-1].content
-            hit = _numeric_hit(expected, ans)
-            correct += hit
-            print(f"[{'PASS' if hit else 'FAIL'}] {q} (expected {expected})\n   -> {ans[:160]}")
-        except Exception as e:
-            print(f"[{'ERROR'}] {q} {e}")
-    print(f"Chatbot accuracy: {correct}/{len(cases)}")
+def _expected_hit(expected, ans):
+   try:
+       float(expected)
+   except ValueError:
+       return expected.lower() in ans.lower()
+   return _numeric_hit(expected, ans)
+
+
+def evaluate_chatbot(pause_s=2.0):
+   print(f"\n--- Evaluating Chatbot QA (tool-calling agent, {len(CHAT_EVAL_CASES)} hand-labelled questions) ---")
+   if not os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") == "your_groq_api_key_here":
+       print("Skipped (no GROQ key)")
+       return
+   from datetime import date
+   from langchain_core.messages import HumanMessage
+   from backend.app.agents.chat_graph import build_chat_agent, SYSTEM_TEMPLATE
+   from backend.app.agents.finance_tools import build_finance_tools
+
+   # Same system prompt as the /chat endpoint
+   agent = build_chat_agent(
+       build_finance_tools(CHAT_EVAL_TXS, CHAT_EVAL_GOALS),
+       SYSTEM_TEMPLATE.format(today=date.today().isoformat()),
+   )
+
+   correct, errors = 0, 0
+   for q, expected in CHAT_EVAL_CASES:
+       try:
+           res = agent.invoke({"messages": [HumanMessage(content=q)]}, config={"recursion_limit": 8})
+           ans = res["messages"][-1].content or ""
+           hit = all(_expected_hit(e, ans) for e in expected)
+           correct += hit
+           print(f"[{'PASS' if hit else 'FAIL'}] {q} (expected {', '.join(expected)})\n   -> {ans[:200]}")
+       except Exception as e:
+           errors += 1
+           print(f"[ERROR] {q} {type(e).__name__}: {e}")
+       time.sleep(pause_s)  # stay under Groq's free-tier rate limit
+   print(f"Chatbot accuracy: {correct}/{len(CHAT_EVAL_CASES)} (errors: {errors})")
+ 
+
 
 if __name__ == "__main__":
-    evaluate_categorization()
-    evaluate_forecasting()
-    evaluate_anomaly_flagging()
-    evaluate_chatbot()
-    print("\nEval complete. All calls traced in Langfuse if configured.")
+   evaluate_categorization()
+   evaluate_hybrid_categorization()
+   evaluate_forecasting()
+   evaluate_anomaly_flagging()
+   evaluate_chatbot()
+   print("\nEval complete. All calls traced in Langfuse if configured.")

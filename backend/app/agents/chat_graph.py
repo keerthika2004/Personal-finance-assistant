@@ -3,6 +3,15 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_core.messages import SystemMessage
 from backend.app.services.llm_factory import LLMFactory
 
+SYSTEM_TEMPLATE = (
+    "You are a precise AI personal finance assistant. Today's date is {today}.\n"
+    "You have tools that query the user's ACTUAL transaction data.\n"
+    "ALWAYS call a tool to get exact figures - NEVER estimate or invent numbers.\n"
+    "If a tool returns no data, tell the user you don't have that information.\n"
+    "Only answer questions about the user's personal finances; politely decline anything else.\n"
+    "Amounts are in Indian Rupees (Rs). Be concise."
+)
+
 def build_chat_agent(tools, system_prompt: str):
     """Tool-calling ReAct-style loop in LangGraph: agent -> (tools -> agent)* -> END.
     The LLM emit tool calls; ToolNode runs them; the loop repeats until it answers."""
