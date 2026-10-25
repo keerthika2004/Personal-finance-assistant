@@ -116,7 +116,8 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
 def dedup_key(date, amount, merchant) -> str:
     """Duplicate-detection key. Shared with the routes that preload DB signatures so both sides format identically."""
     merchant_clean = str(merchant or "").strip().lower()
-    return f"{date}_{to_money(amount)}_{merchant_clean}"
+    day = str(date)[:10] #calender day: a re-sync carries a differnt time of day
+    return f"{day}_{to_money(amount)}_{merchant_clean}"
 
 # Node 2: Deduplication Detection
 def deduplication_node(state: ReconciliationState) -> ReconciliationState:

@@ -169,7 +169,7 @@ async def trigger_bank_sync(
     await db.refresh(stmt)
 
     # Fetch existing DB signatures for deduplication for this user
-    result = await db.execute(select(Transaction).where(Transaction.user_id == user_id))
+    result = await db.execute(select(Transaction).where(Transaction.user_id == user_id, Transaction.status != "REJECTED"))
     existing_db_txs = result.scalars().all()
 
     existing_signatures = []

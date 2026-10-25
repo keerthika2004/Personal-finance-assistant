@@ -44,8 +44,11 @@ async def upload_statement(
     if not contents:
         raise HTTPException(status_code=400, detail="Empty file submitted.")
 
-    import time
-    file_hash = hashlib.sha256(contents + str(time.time()).encode()).hexdigest()
+    #Hash content per user: re-uploading the same statement is caught, two users can still upload the same file
+    file_hash = hashlib.sha256(user_id.encode() + b":" + contents).hexdigest()
+    existing_stmt = await db.execute(select (Statement). where(Statement.file_hash ==file_hash))
+    if existing_stmt.scalar_one_or_none() :
+        raise HTTPException(status_code=409, detail="This statement has already been uploaded.") 
 
     # Parse raw transactions from PDF / CSV
     try:
