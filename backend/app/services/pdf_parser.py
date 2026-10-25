@@ -1,4 +1,4 @@
-from pygments.lexer import words
+
 import io
 import re
 import os
@@ -229,7 +229,7 @@ class StatementParser:
         
         if not ocr_text.strip():
             raise ValueError("Could not extract any text from the image using OCR.")
-        PIIRedactor.redact(ocr_text)
+        ocr_text = PIIRedactor.redact(ocr_text)
         client = Groq(api_key=groq_api_key)
         model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
@@ -294,17 +294,15 @@ class StatementParser:
         words = set(re.findall(r"[a-z]+", h))
         if "balance" in words:
             return "balance"
-        if "balance" in words: 
-            return "balance"
-        if words & ("debit", "debits", "withdrawal", "withdrawals", "dr") or h in ("out", "money out", "paid out"):
+        if words & {"debit", "debits", "withdrawal", "withdrawals", "dr"} or h in ("out", "money out", "paid out"):
             return "debit"
-        if words & ("credit", "credits", "deposit", "deposits", "or") or h in ("in", "money in", "paid in"):
+        if words & {"credit", "credits", "deposit", "deposits", "cr"} or h in ("in", "money in", "paid in"):
             return "credit"
-        if words & ("date", "dt"):
+        if words & {"date", "dt"}:
             return "date"
-        if words & ("amount", "Int", "value"):
+        if words & {"amount", "amt", "value"}:
             return "amount"
-        if words & ("description", "desc", "details", "particulars", "narration", "merchant", "payee", "name", "remarks"):
+        if words & {"description", "desc", "details", "particulars", "narration", "merchant", "payee", "name", "remarks"}:
             return "desc"
         return None
 

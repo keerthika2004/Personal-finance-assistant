@@ -59,7 +59,7 @@ Precision: 1.00   Recall: 1.00   F1: 1.00
 [PASS] How much did I spend at Starbucks in total? (expected 10.00)
    -> You’ve spent a total of **Rs 10.00** at Starbucks.
 [PASS] What was my single largest expense? (expected 150.00)
-   -> Your single largest expense was **Rs 150.00** on 2024‑01‑02 for the **Shopping** category.
+   -> Your single largest expense was **Rs 150.00** on **2024‑01‑02** for **Shopping**.
 [PASS] How many transactions do I have? (expected 3)
    -> You have a total of **3 transactions**.
 Chatbot accuracy: 3/3

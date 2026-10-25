@@ -1,4 +1,4 @@
-from _plotly_utils import basevalidators
+
 import pytest
 from datetime import datetime
 from backend.app.services.pdf_parser import StatementParser
@@ -84,7 +84,7 @@ def test_reconciliation_graph_uses_history_for_spikes():
 
     final_state = reconcile_graph.invoke({
         "statement_id": "test_stmt_history",
-        "raw_descriptions": [{"raw_description": "Fancy Restaurant", "amount": -5000.0, "date": "2026-08-03", "Category":"Dining"}],
+        "raw_transactions": [{"raw_description": "Fancy Restaurant", "amount": -5000.0, "date": "2026-08-03", "category":"Dining"}],
         "normalized_transactions": [],
         "flagged_transactions": [],
         "approved_transactions": [],
@@ -100,6 +100,6 @@ def test_reconciliation_graph_uses_history_for_spikes():
 def test_cs_parser_indian_bank_headers():
     sample_csv = (b"Date, Narration, Value Dt, Withdrawal Amt.,Deposit Amt., Closing Balance\n"
     b"01/08/26, SWIGGY,01/08/26,450.00,,10000.00\n" 
-    b"02/08/26, SALARY, 02/08/26,,85000.60,95000.00\n")
+    b"02/08/26, SALARY, 02/08/26,,85000.00,95000.00\n")
     txs = StatementParser.parse_file(sample_csv, "hdfc.csv")
-    assert [t[" amount"] for t in txs] == [-450.0, 85000.0]
+    assert [t["amount"] for t in txs] == [-450.0, 85000.0]
