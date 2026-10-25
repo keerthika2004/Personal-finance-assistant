@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 from sqlalchemy import (
-    Column, String, Float, Boolean, DateTime, ForeignKey, Enum as SQLEnum, Text, Integer, Index
+    Column, String, Float, Boolean, DateTime, ForeignKey, Enum as SQLEnum, Text, Integer, Index, Numeric
 )
 from sqlalchemy.orm import relationship
 from backend.app.db.database import Base
@@ -63,7 +63,7 @@ class Transaction(Base):
     statement_id = Column(String(36), ForeignKey("statements.id"), nullable=True)
     
     date = Column(DateTime, nullable=False)
-    amount = Column(Float, nullable=False)  # Positive for Income, Negative for Expense
+    amount = Column(Numeric(14,2), nullable=False)  # Positive for Income, Negative for Expense
     raw_description = Column(Text, nullable=False)
     normalized_merchant = Column(String(150), nullable=True)
     category = Column(String(100), nullable=False, default="Uncategorized")
@@ -96,8 +96,8 @@ class UserGoal(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String(100), nullable=False, index=True)
     goal_name = Column(String(150), nullable=False)
-    target_amount = Column(Float, nullable=False)
-    current_amount = Column(Float, default=0.0)
+    target_amount = Column(Numeric(14,2), nullable=False)
+    current_amount = Column(Numeric(14,2), default=0.0)
     category_target = Column(String(100), nullable=True)  # e.g., Dining, Travel, Savings
     target_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

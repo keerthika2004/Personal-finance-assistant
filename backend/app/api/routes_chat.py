@@ -46,7 +46,7 @@ async def query_financial_agent(
 
     tx_dicts = [
         {
-            "date": t.date, "amount": t.amount, "category": t.category, "normalized_merchant": t.normalized_merchant or t.raw_description, "raw_description": t.raw_description
+            "date": t.date, "amount": float(t.amount), "category": t.category, "normalized_merchant": t.normalized_merchant or t.raw_description, "raw_description": t.raw_description
         }
         for t in txs
     ]
@@ -54,8 +54,8 @@ async def query_financial_agent(
     goal_dicts = [
         {
             "goal_name": g.goal_name,
-            "target_amount": g.target_amount,
-            "current_amount": g.current_amount
+            "target_amount": float(g.target_amount),
+            "current_amount": float(g.current_amount)
         }
         for g in goals
     ]

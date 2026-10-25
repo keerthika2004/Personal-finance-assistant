@@ -10,7 +10,7 @@ from sqlalchemy.future import select
 from backend.app.db.database import get_db
 from backend.app.db.models import Statement, Transaction, TransactionStatus
 from backend.app.api.auth import get_current_user_id
-from backend.app.agents.reconciliation_graph import get_reconciliation_graph
+from backend.app.agents.reconciliation_graph import get_reconciliation_graph, dedup_key, to_money
 
 router = APIRouter(prefix="/api/v1/bank-sync", tags=["Bank Sync"])
 
@@ -177,9 +177,9 @@ async def trigger_bank_sync(
     for t in existing_db_txs:
         date_str = str(t.date)
         merchant_clean = str(t.normalized_merchant).strip().lower() if t.normalized_merchant else ""
-        existing_signatures.append(f"{date_str}_{t.amount}_{merchant_clean}")
+        existing_signatures.append(dedup_key(t.date,t.amount,t.normalized_merchant))
         existing_tx_dicts.append({
-            "amount": t.amount,
+            "amount": float(t.amount),
             "category": t.category or "Uncategorized",
             "raw_description": t.raw_description or ""
         })
@@ -229,7 +229,7 @@ async def trigger_bank_sync(
             user_id=user_id,
             statement_id=stmt.id,
             date=dt,
-            amount=tx["amount"],
+            amount=to_money(tx["amount"]),
             raw_description=tx["raw_description"],
             normalized_merchant=str(tx["normalized_merchant"])[:150] if tx.get("normalized_merchant") else None,
             category=str(tx["category"])[:100] if tx.get("category") else "Uncategorized",

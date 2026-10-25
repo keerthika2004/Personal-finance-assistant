@@ -61,6 +61,9 @@ async def init_db():
         "ALTER TABLE transactions ALTER COLUMN user_id DROP DEFAULT",
         "ALTER TABLE statements ALTER COLUMN user_id DROP DEFAULT",
         "ALTER TABLE statements ALTER COLUMN user_id DROP DEFAULT",
+        "ALTER TABLE transactions ALTER COLUMN amount TYPE NUMERIC(14,2) USING round(amount::numeric, 2)",
+        "ALTER TABLE user_goals ALTER COLUMN target_amount TYPE NUMERIC(14,2) USING round(target_amount::numeric, 2)",
+        "ALTER TABLE user_goals ALTER COLUMN current_amount TYPE NUMERIC(14,2) USING round(current_amount::numeric, 2)"
     ]
     for sql in migrations:
         async with engine.begin() as conn:
@@ -76,6 +79,7 @@ async def init_db():
     from datetime import datetime
     from sqlalchemy import select
     from backend.app.db.models import Transaction, UserGoal, User
+    from backend.app.services.money import to_money
     
     async with AsyncSessionLocal() as session:
         user_query = await session.execute(select(User).where(User.id == "demo_user"))
@@ -93,14 +97,14 @@ async def init_db():
                     for tx in seed_data.get('transactions', []):
                         session.add(Transaction(
                             id=tx['id'], user_id="demo_user", 
-                            date=datetime.fromisoformat(tx['date']), amount=tx['amount'], 
+                            date=datetime.fromisoformat(tx['date']), amount=to_money[tx['amount']], 
                             category=tx['category'], normalized_merchant=tx['normalized_merchant'], 
                             raw_description=tx['normalized_merchant'], status="APPROVED"
                         ))
                     for goal in seed_data.get('goals', []):
                         session.add(UserGoal(
                             id=goal['id'], user_id="demo_user", goal_name=goal['goal_name'], 
-                            target_amount=goal['target_amount'], current_amount=goal['current_amount'], 
+                            target_amount=to_money[goal['target_amount']], current_amount=to_money[goal['current_amount']], 
                             category_target=goal['category_target']
                         ))
                     await session.commit()

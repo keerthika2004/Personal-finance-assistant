@@ -10,6 +10,7 @@ import logging
 from typing import Literal
 from pydantic import BaseModel, Field
 from backend.app.services.categorizer import MLCategorizer, normalize_category
+from backend.app.services.money import to_money
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +113,10 @@ def normalize_and_categorize_node(state: ReconciliationState) -> ReconciliationS
     state["current_step"] = "NORMALIZED"
     return state
 
+def dedup_key(date, amount, merchant) -> str:
+    """Duplicate-detection key. Shared with the routes that preload DB signatures so both sides format identically."""
+    merchant_clean = str(merchant or "").strip().lower()
+    return f"{date}_{to_money(amount)}_{merchant_clean}"
 
 # Node 2: Deduplication Detection
 def deduplication_node(state: ReconciliationState) -> ReconciliationState:
@@ -120,9 +125,7 @@ def deduplication_node(state: ReconciliationState) -> ReconciliationState:
     seen = {}
 
     for tx in txs:
-        # Match key: date + amount + normalized_merchant (case-insensitive and stripped)
-        merchant_clean = str(tx['normalized_merchant']).strip().lower()
-        key = f"{tx['date']}_{tx['amount']}_{merchant_clean}"
+        key = dedup_key(tx['date'],tx['amount'],tx['normalized_merchant'])
         is_db_dup = key in existing_sigs
 
         if key in seen or is_db_dup:

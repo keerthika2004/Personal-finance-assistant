@@ -1,3 +1,4 @@
+from backend.app.services.money import to_money
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
@@ -54,7 +55,7 @@ async def get_analytics_summary(
         {
             "id": t.id,
             "date": t.date.isoformat(),
-            "amount": t.amount,
+            "amount": float(t.amount),
             "category": t.category,
             "normalized_merchant": t.normalized_merchant
         }
@@ -98,12 +99,13 @@ async def get_analytics_summary(
     monthly_trend = {}
     for t in approved_txs:
         month_key = t.date.strftime("%Y-%m")
+        amt = float(t.amount)
         if month_key not in monthly_trend:
             monthly_trend[month_key] = {"income": 0.0, "expenses": 0.0}
-        if t.amount > 0:
-            monthly_trend[month_key]["income"] += t.amount
+        if amt > 0:
+            monthly_trend[month_key]["income"] += amt
         else:
-            monthly_trend[month_key]["expenses"] += abs(t.amount)
+            monthly_trend[month_key]["expenses"] += abs(amt)
 
     # Generate 30-day forecast
     forecast = generate_forecast(tx_dicts, periods=30)
@@ -134,7 +136,7 @@ async def get_analytics_summary(
     # 3. Goal Progress Factor (+/- 10 pts)
     goal_factor = 0.0
     if goal_dicts:
-        avg_goal_progress = sum([g["current_amount"] / g["target_amount"] if g["target_amount"] > 0 else 0 for g in goal_dicts]) / len(goal_dicts)
+        avg_goal_progress = sum([float(g.current_amount) / float(g.target_amount) if float(g.target_amount) > 0 else 0 for g in goal_dicts]) / len(goal_dicts)
         goal_factor = min(10.0, avg_goal_progress * 10.0)
     health_score += goal_factor
     
@@ -166,8 +168,8 @@ async def create_user_goal(
     goal = UserGoal(
         user_id=user_id,
         goal_name=request.goal_name,
-        target_amount=request.target_amount,
-        current_amount=request.current_amount or 0.0,
+        target_amount=to_money(request.target_amount),
+        current_amount=to_money(request.current_amount or 0),
         category_target=request.category_target or "Savings"
     )
     db.add(goal)
@@ -197,10 +199,10 @@ async def add_funds_to_goal(
     if not goal:
         raise HTTPException(status_code=404, detail="Goal not found")
         
-    goal.current_amount += request.amount
+    goal.current_amount = to_money(goal.current_amount or 0) + to_money(request.amount)
     await db.commit()
     
-    return {"message": "Funds added successfully", "new_amount": goal.current_amount}
+    return {"message": "Funds added successfully", "new_amount": float(goal.current_amount)}
 
 @router.delete("/goals/{goal_id}")
 async def delete_goal(
@@ -264,7 +266,7 @@ async def update_transaction(transaction_id: str, request: TransactionUpdateRequ
     if request.amount is not None:
         # Amount from frontend might be positive even for expenses, but let's assume they provide the raw float.
         # Actually in data_editor they will see positive amounts with a "₹" symbol, but we can clean that in frontend before sending.
-        tx.amount = request.amount
+        tx.amount = to_money(request.amount)
         
     await db.commit()
     

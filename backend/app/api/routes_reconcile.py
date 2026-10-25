@@ -37,7 +37,7 @@ async def get_pending_hitl_items(
             "id": tx.id,
             "statement_id": tx.statement_id,
             "date": tx.date.isoformat(),
-            "amount": tx.amount,
+            "amount": float(tx.amount),
             "raw_description": tx.raw_description,
             "normalized_merchant": tx.normalized_merchant,
             "category": tx.category,
