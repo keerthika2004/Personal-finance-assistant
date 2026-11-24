@@ -4,9 +4,6 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/ap
 
 export const api = axios.create({
   baseURL: API_BASE,
-  headers: {
-    'Content-Type': 'application/json'
-  }
 });
 
 // Inject Auth Token automatically into all outgoing API requests
@@ -35,16 +32,10 @@ api.interceptors.response.use(
   }
 )
 
-// Polyfill for file uploads
 export const uploadStatement = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
-  const token = localStorage.getItem('auth_token');
-  const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  const response = await axios.post(`${API_BASE}/upload`, formData, { headers });
+  const response = await api.post('/upload', formData);
   return response.data;
 };
 
